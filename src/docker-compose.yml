@@ -1,0 +1,112 @@
+secrets:
+  db_password:
+    file: db_password.txt
+  postgres-password:
+    file: postgres_password.txt
+
+services:
+  postgresql:
+      secrets:
+        - postgres-password
+      image: pgvector/pgvector:pg16 #postgis/postgis:latest
+      hostname: postgresql
+      container_name: postgresql
+      ports:
+          - "5433:5432"
+      environment:
+          POSTGRES_USER: postgresql
+          POSTGRES_DB_PASSWORD_FILE: /run/secrets/postgres-password
+      volumes:
+          - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+          - ./data/postgresql:/var/lib/postgresql/data
+      healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U postgresql"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+      logging:
+        options:
+          max-size: "10m"
+          max-file: "3"
+
+  inference_server:
+    image: nvcr.io/nvidia/tensorrtserver:19.05-py3
+    runtime: nvidia
+    volumes:
+      - ./models:/models
+    ports:
+      - 8000:8000
+      - 8002:8002
+    command: ["trtserver", "--model-store=/models"]
+    shm_size: 1g
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    deploy:
+      resources:
+        reservations:
+          memory: 16GB
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  frontend:
+     depends_on:
+       - backend
+     image: ghcr.io/hodzanassredin/hltr_front:latest
+     volumes:
+       - ./cert:/cert
+     restart: always
+     ports:
+       - '8086:80'
+       - '8088:443'
+     environment:
+        - FrontendUrl=https://${DOMAIN}
+        - BackendUrl=https://api.${DOMAIN}
+     logging:
+       options:
+         max-size: "10m"
+         max-file: "3"
+
+  backend:
+     secrets:
+       - db_password
+     depends_on:
+       - postgresql
+     image: ghcr.io/hodzanassredin/hltr_back:latest
+     volumes:
+       - ./cert:/cert
+       - ./data/backend:/data/fs:Z
+     restart: always
+     environment:
+        - ConnectionStrings__AppDbContext=Host=postgresql;Port=5432;Database=ident;Username=postgresql;Password=cjm;Trust Server Certificate=true
+        - FrontendUrl=https://${DOMAIN}
+        - BackendUrl=https://api.${DOMAIN}
+        - Options__RootFsPath=/data/fs
+     ports:
+       - '7211:8080'
+     logging:
+       options:
+         max-size: "10m"
+         max-file: "3"
+
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - frontend
+      - backend
+    depends_on:
+      - bookstack
+      - frontend
+      - backend
+    restart: always
+    environment:
+      STAGE: local
+      DOMAINS: '${DOMAIN} -> http://frontend, api.${DOMAIN} -> http://backend:8080'
+      CLIENT_MAX_BODY_SIZE: 500M
+      WEBSOCKET: 'true'
+      #STAGE: 'production'

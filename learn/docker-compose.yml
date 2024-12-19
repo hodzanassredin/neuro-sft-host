@@ -1,0 +1,41 @@
+version: '2'
+ 
+services:
+  
+  sft:
+    shm_size: '8gb'
+    build:
+        context:  .
+        dockerfile: Dockerfile
+    restart: always
+    env_file: "../settings.env"
+    environment:
+        - NVIDIA_VISIBLE_DEVICES=all
+        - HF_HOME=/hf/
+        - JUPYTER_TOKEN=token
+        - HF_TOKEN=${HF_TOKEN}
+        - MODELS_HOME=${MODELS_HOME}
+    ports:
+      - '7778:8888'
+    logging:
+        options:
+            max-size: "10m"
+            max-file: "3"
+    volumes:
+          - ${HF_HOME}:/hf
+          - ./notebooks:/app/notebooks
+    deploy:
+      resources:
+        reservations:
+          memory: 60GB
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+
+          
+    
+    
+    
+ 

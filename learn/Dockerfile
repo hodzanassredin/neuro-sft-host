@@ -1,0 +1,9 @@
+FROM huggingface/transformers-pytorch-gpu
+
+COPY ./requirements.txt /app/requirements.txt
+WORKDIR /app
+RUN apt-get update && \
+        apt-get install -y wget libsndfile1 cargo rustc
+RUN --mount=type=cache,target=/root/.cache/pip pip install -U pip
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+CMD ["jupyter", "lab", "--allow-root", "--ip=0.0.0.0"]

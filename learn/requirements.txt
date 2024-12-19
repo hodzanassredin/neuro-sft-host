@@ -1,0 +1,7 @@
+jupyterlab
+transformers
+accelerate
+trl
+torchaudio
+subword-nmt
+ctranslate2==4.4.0
