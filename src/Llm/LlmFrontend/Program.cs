@@ -13,21 +13,7 @@ namespace LlmFrontend
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-
-
-            var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
-            var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
-            builder.Services.AddScoped(sp =>
-                new HttpClient { BaseAddress = new Uri(front) });
-            // register the cookie handler
             builder.Services.AddScoped<CookieHandler>();
-            // configure client for auth interactions
-            builder.Services.AddHttpClient(
-                "Auth",
-                opt => opt.BaseAddress = new Uri(back))
-                .AddHttpMessageHandler<CookieHandler>();
-
-            
 
             // set up authorization
             builder.Services.AddAuthorizationCore();
@@ -39,6 +25,16 @@ namespace LlmFrontend
             builder.Services.AddScoped(
                 sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
 
+
+            var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
+            var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
+            builder.Services.AddScoped(sp =>
+                new HttpClient { BaseAddress = new Uri(front) });
+            // configure client for auth interactions
+            builder.Services.AddHttpClient(
+                "Auth",
+                opt => opt.BaseAddress = new Uri(back))
+                .AddHttpMessageHandler<CookieHandler>();
 
             await builder.Build().RunAsync();
         }

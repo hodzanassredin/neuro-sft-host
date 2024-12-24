@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 namespace LllmBackend.Hubs
@@ -6,7 +7,7 @@ namespace LllmBackend.Hubs
     public class ChatHub : Hub
     {
         private static ConcurrentDictionary<string, ConcurrentDictionary<string, object?>> MyUsers = new();
-
+        [Authorize]
         public async Task SendMessage(string user, string message)
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message);

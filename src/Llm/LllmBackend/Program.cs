@@ -10,9 +10,22 @@ namespace LllmBackend
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
+            var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
+            builder.Services.AddCors(
+                options => options.AddPolicy(
+                    "wasm",
+                    policy => policy.WithOrigins([back, front])
+                        //.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .SetIsOriginAllowed(pol => true)
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        ));
+
             builder.Services.AddSignalR();
             // Add services to the container.
             //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -42,6 +55,7 @@ namespace LllmBackend
 
             // configure authorization
             builder.Services.AddAuthorizationBuilder();
+            
 
             // add the database (in memory for the sample)
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("AppDbContext")));
@@ -52,21 +66,12 @@ namespace LllmBackend
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddApiEndpoints()
                 .AddDefaultTokenProviders();
-            var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
-            var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
+            
 
 
 
 
-            builder.Services.AddCors(
 
-                options => options.AddPolicy(
-                    "wasm",
-                    policy => policy.WithOrigins([back, front])
-                        .AllowAnyMethod()
-                        .SetIsOriginAllowed(pol => true)
-                        .AllowAnyHeader()
-                        .AllowCredentials()));
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -107,6 +112,14 @@ namespace LllmBackend
             app.MapIdentityApi<AppUser>();
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
+
+
+            
+            using (var scope = app.Services.CreateScope())
+            {
+                await Auth.SeedData.InitializeAsync(scope.ServiceProvider);
+            }
+
             app.Run();
         }
     }

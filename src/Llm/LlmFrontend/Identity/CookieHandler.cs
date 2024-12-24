@@ -17,7 +17,7 @@ namespace LlmFrontend.Identity
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             // include cookies!
-            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            request = request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
             return base.SendAsync(request, cancellationToken);
         }

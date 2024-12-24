@@ -194,7 +194,9 @@ namespace LlmFrontend.Identity
                     _authenticated = true;
                 }
             }
-            catch { }
+            catch(Exception ex) { 
+                
+            }
 
             // return the state
             return new AuthenticationState(user);

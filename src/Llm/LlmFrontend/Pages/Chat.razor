@@ -1,9 +1,12 @@
 ﻿@page "/chat"
+@using LlmFrontend.Identity
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject IAccessTokenProvider TokenProvider
+@* @inject IAccessTokenProvider TokenProvider *@
 @inject NavigationManager Navigation
+@inject IConfiguration config
 @implements IAsyncDisposable
+@inject IJSRuntime js
 
 <PageTitle>Chat</PageTitle>
 
@@ -36,25 +39,42 @@
     private string? userInput;
     private string? messageInput;
 
+    private async Task<System.Net.Cookie?> GetCookie(string key)
+    {
+        var raw = await js.InvokeAsync<string>("eval", "document.cookie");
+        var all = raw.Split("; ");
+        foreach (var item in all)
+        {
+            var parts = item.Split("=", 2);
+            if (parts[0] == key) {
+                return new System.Net.Cookie(parts[0], parts[1]);
+            }
+        }
+        return null;
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        var tokenResult = await TokenProvider.RequestAccessToken();
+        var backendUrl = config["BackendUrl"] ?? "https://localhost:5001";
 
-        if (tokenResult.TryGetToken(out var token))
+        var cookie = await GetCookie("AspNetCore.Identity.Application");
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(backendUrl + "/chathub",
+                options => {
+                    //    options.AccessTokenProvider = () => Task.FromResult(token?.Value); 
+
+                    if (cookie!=null) options.Cookies.Add(cookie);
+                    options.HttpMessageHandlerFactory = innerHandler => new CookieHandler { InnerHandler = innerHandler };
+                })
+            .Build();
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
         {
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl(Navigation.ToAbsoluteUri("/chathub"),
-                    options => { options.AccessTokenProvider = () => Task.FromResult(token?.Value); })
-                .Build();
-            hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
-            {
-                var encodedMsg = $"{user}: {message}";
-                messages.Add(encodedMsg);
-                InvokeAsync(StateHasChanged);
-            });
+            var encodedMsg = $"{user}: {message}";
+            messages.Add(encodedMsg);
+            InvokeAsync(StateHasChanged);
+        });
 
-            await hubConnection.StartAsync();
-        }
+        await hubConnection.StartAsync();
 
     }
 
