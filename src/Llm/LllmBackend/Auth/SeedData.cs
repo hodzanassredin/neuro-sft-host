@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace LllmBackend.Auth
+namespace LlmBackend.Auth
 {
     public class SeedData
     {

@@ -1,12 +1,13 @@
-using LllmBackend.Auth;
-using LllmBackend.Hubs;
+using LlmBackend.Auth;
+using LlmBackend.Hubs;
+using LlmChat;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using System.Security.Claims;
 
-namespace LllmBackend
+namespace LlmBackend
 {
     public class Program
     {
@@ -84,6 +85,14 @@ namespace LllmBackend
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     ["application/octet-stream"]);
             });
+
+            builder.Host.UseOrleans(static siloBuilder =>
+            {
+                siloBuilder.UseLocalhostClustering()
+                           .AddMemoryGrainStorage("PubSubStore")
+                           .AddMemoryStreams(Constants.ChatsStreamStorage);
+            });
+
 
             var app = builder.Build();
             app.UseResponseCompression();
