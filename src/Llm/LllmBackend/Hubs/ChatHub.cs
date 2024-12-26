@@ -1,96 +1,67 @@
-﻿using LlmChat;
+﻿using LlmBackend.Infrastructure;
+using LlmCommon;
 using LlmCommon.Abstractions;
+using LlmCommon.Dtos;
+using LlmCommon.Entities;
+using LlmCommon.Implementations;
+using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Orleans.Streams;
 
 namespace LlmBackend.Hubs
 {
-    public class ChatHub : Hub, IEventHandler
+    public class ChatHub : Hub, IContext
     {
-        private readonly IClusterClient _clusterClient;
+        private readonly static ConnectionMapping<string> _connections =
+            new ConnectionMapping<string>();
 
-        public ChatHub(IClusterClient clusterClient)
+        private readonly IEntityStorage<ChatEntity> chats;
+
+        public ChatHub(IEntityStorage<ChatEntity> chats)
         {
-            _clusterClient = clusterClient;
-            var streamProvider = _clusterClient.GetStreamProvider(Constants.ChatsStreamStorage);
-            var chatRoomsStream = streamProvider.GetStream<string>(
-                StreamId.Create("ChatRooms", string.Empty));
-            chatRoomsStream.SubscribeAsync((data, token) => this.Clients.All.SendAsync("NewGroup", data));
-
-            var newMessagesStream = streamProvider.GetStream<RoomChatMsg>(
-                StreamId.Create("ChatRoom", string.Empty));
-            newMessagesStream.SubscribeAsync((data, token) => this.Clients.Group(data.room).SendAsync("NewMessage", data.room, data.msg));
+            this.chats = chats;
         }
         [Authorize]
-        public async Task JoinChat(string chatId, string user)
-        {
+        public IEnumerable<string> GetCurrentUserConnections() {
             var userName = Context.User?.Identity?.Name;
-            if (userName == null) { throw new Exception("User should be authenticated"); }
-
-            var chatGrain = _clusterClient.GetGrain<IChannelGrain>(chatId);
-            await chatGrain.Join(user);
-            
-            await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
-        }
-        [Authorize]
-        public async Task LeaveChat(string chatId, string user)
-        {
-            var chatGrain = _clusterClient.GetGrain<IChannelGrain>(chatId);
-            await chatGrain.Leave(user);
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
-        }
-        [Authorize]
-        public async Task CreateChat(string chatId)
-        {
-            var userName = Context.User?.Identity?.Name;
-            if (userName == null) { throw new Exception("User should be authenticated"); }
-            var chatManagerGrain = _clusterClient.GetGrain<IChatsManagerGrain>("ChatManager");
-            await chatManagerGrain.CreateChat(chatId, userName);
+            return _connections.GetConnections(userName);
         }
 
+        private Excecutor GetExecutor() {
+            var eventBus = new SimpleEventBus();
+            eventBus.Subscribe(new ChatHubEventHandler(this));
+            return new Excecutor(chats, this, eventBus);
+        }
 
         [Authorize]
-        public async Task SendMessage(string room, string message)
+        public async Task ExecCommand(Command cmd)
         {
-            var userName = Context.User?.Identity?.Name;
-            var chatGrain = _clusterClient.GetGrain<IChannelGrain>(room);
-            await chatGrain.Message(new ChatMsg(userName, message));
+            await cmd.Accept(GetExecutor());
         }
-
+        [Authorize]
+        public async Task<TV> ExecQuery<TV>(Query<TV> q) where TV:View
+        {
+            var res = await q.Accept(GetExecutor());
+            var user = GetCurrentUser();
+            if (res is AllChatsView acq) {
+                foreach (var chat in acq.Chats)
+                {
+                    if (chat.Subscribers.Any(x => x.Id == user.Id)) {
+                        foreach (var connId in _connections.GetConnections(user.Id.ToString())) {
+                            await Groups.AddToGroupAsync(connId, chat.Id.ToString());
+                        }
+                    }
+                }
+            }
+            return res;
+        }
         public override async Task OnConnectedAsync()
         {
             var userName = Context.User?.Identity?.Name;
+            
             if (userName != null)
             {
-                var userGrain = _clusterClient.GetGrain<IUserGrain>(userName);
-                var subscriptions = await userGrain.GetSubscriptions();
-                
-                var managerGrain = _clusterClient.GetGrain<IChatsManagerGrain>(string.Empty);
-                var allChats = await managerGrain.GetChats();
-
-                var chatsData = new Dictionary<string, ChatMsg[]>();
-                foreach (var chat in allChats) {
-
-                    if (subscriptions.Contains(chat))
-                    {
-                        var chatGrain = _clusterClient.GetGrain<IChannelGrain>(chat);
-                        var history = await chatGrain.ReadHistory(10);
-                        chatsData.Add(chat, history);
-                    }
-                    else {
-                        chatsData.Add(chat, []);
-                    }
-                    
-
-                }
-                await Clients.Caller.SendAsync("LoadChats", chatsData);
-
-
-                foreach (var item in subscriptions)
-                {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, item);
-                }
+                _connections.Add(userName, Context.ConnectionId);
             }
 
             await base.OnConnectedAsync();
@@ -98,7 +69,19 @@ namespace LlmBackend.Hubs
 
         public override Task OnDisconnectedAsync(Exception? exception)
         {
+            var userName = Context.User?.Identity?.Name;
+
+            if (userName != null)
+            {
+                _connections.Remove(userName, Context.ConnectionId);
+            }
             return base.OnDisconnectedAsync(exception);
+        }
+        [Authorize]
+        public User GetCurrentUser()
+        {
+            var name = Context.User?.Identity?.Name?? String.Empty;
+            return new User(name, name);
         }
     }
 }

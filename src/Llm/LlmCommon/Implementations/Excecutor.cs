@@ -6,7 +6,7 @@ using LlmCommon.Views;
 
 namespace LlmCommon.Implementations
 {
-    public class Exceutor(IEntityStorage<ChatEntity> chats, IContext ctx, IEventBus eventBus) : IExecutor, IViewStorage
+    public class Excecutor(IEntityStorage<ChatEntity> chats, IContext ctx, IEventBus eventBus) : IExecutor, IViewStorage
     {
         public async Task Visit(LeaveCommand cmd)
         {

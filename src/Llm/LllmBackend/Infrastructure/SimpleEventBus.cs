@@ -3,16 +3,17 @@ using LlmCommon.Abstractions;
 
 namespace LlmBackend.Infrastructure
 {
-    public class SignalrEventBus : IEventBus
+    public class SimpleEventBus : IEventBus
     {
+        IEventHandler handler;
         public Task Publish(Event @event)
         {
-            throw new NotImplementedException();
+            return @event.Accept(handler);
         }
 
         public void Subscribe(IEventHandler handler)
         {
-            throw new NotImplementedException();
+            this.handler = handler;
         }
     }
 }
