@@ -1,0 +1,29 @@
+﻿@using LlmCommon
+@using LlmCommon.Dtos
+<a @onclick="Click" href="#" class="d-flex align-items-center">
+    <div class="flex-shrink-0">
+        <img class="img-fluid" src="user.svg" alt="user img">
+        @if (IsActive)
+        {
+            <span class="active"></span>
+        }
+    </div>
+    <div class="flex-grow-1 ms-3">
+        <h3>@Chat.Name</h3>
+        <p>owned by @Chat.Owner.Name</p>
+    </div>
+</a>
+@code {
+    private Task Click() {
+        return OnClick.InvokeAsync(Chat);
+    }
+
+    [Parameter]
+    public ChatDto Chat { get; set; } = null!;
+
+    [Parameter]
+    public bool IsActive { get; set; } = false;
+    [Parameter]
+    public EventCallback<ChatDto> OnClick { get; set; }
+
+}

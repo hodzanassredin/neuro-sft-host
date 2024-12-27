@@ -1,0 +1,13 @@
+﻿@using LlmCommon.Dtos
+
+
+
+<li class="repaly">
+    <p>@Message.Text</p>
+    <span class="time">junt now</span>
+</li>
+
+@code {
+    [Parameter]
+    public MessageDto Message { get; set; } = null!;
+}
