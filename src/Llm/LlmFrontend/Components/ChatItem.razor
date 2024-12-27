@@ -1,8 +1,10 @@
 ﻿@using LlmCommon
 @using LlmCommon.Dtos
-<a @onclick="Click" href="#" class="d-flex align-items-center">
+<a @onclick="Click" href="#" 
+   @onclick:preventDefault="true"
+   @onclick:stopPropagation="true" class="d-flex align-items-center">
     <div class="flex-shrink-0">
-        <img class="img-fluid" src="user.svg" alt="user img">
+        <img class="img-fluid" src="user.png" alt="user img">
         @if (IsActive)
         {
             <span class="active"></span>

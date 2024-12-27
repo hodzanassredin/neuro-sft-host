@@ -1,5 +1,6 @@
 ﻿@page "/chat"
 @using LlmCommon
+@using LlmCommon.Abstractions
 @using LlmCommon.Dtos
 @using LlmFrontend.Components
 @using LlmFrontend.Identity
@@ -10,6 +11,11 @@
 @inject IConfiguration config
 @inject IJSRuntime js
 @inject AppState state
+@inject IEventBus bus
+@implements IEventHandler
+@implements IDisposable
+
+
 <PageTitle>Chat</PageTitle>
 
 <section class="message-area">
@@ -73,24 +79,22 @@
                         </div>
                     </div>
                     <!-- chatlist -->
-                    @{
-                        var cl = currentChat == null ? "chatbox" : " chatbox showbox";
-                    }
+                    @if (currentChat!=null){
                     <!-- chatbox -->
-                    <div class="@cl">
+                    <div class="chatbox">
                         <div class="modal-dialog-scrollable">
                             <div class="modal-content">
                                 <div class="msg-head">
                                     <div class="row">
                                         <div class="col-8">
                                             <div class="d-flex align-items-center">
-                                                <span class="chat-icon"><img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/arroleftt.svg" alt="image title"></span>
+                                                <span class="chat-icon"><img class="img-fluid" src="icons_biking-solid.svg" alt="image title"></span>
                                                 <div class="flex-shrink-0">
-                                                    <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
+                                                    <img class="img-fluid" src="user.png" alt="user img">
                                                 </div>
                                                 <div class="flex-grow-1 ms-3">
-                                                    <h3>Mehedi Hasan</h3>
-                                                    <p>front end developer</p>
+                                                    <h3>@currentChat?.Name</h3>
+                                                    <p>@currentChat?.Owner?.Name</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -116,45 +120,29 @@
                                 <div class="modal-body">
                                     <div class="msg-body">
                                         <ul>
-                                            <li class="sender">
-                                                <p> Hey, Are you there? </p>
-                                                <span class="time">10:06 am</span>
-                                            </li>
-                                            <li class="sender">
-                                                <p> Hey, Are you there? </p>
-                                                <span class="time">10:16 am</span>
-                                            </li>
-                                            <li class="repaly">
-                                                <p>yes!</p>
-                                                <span class="time">10:20 am</span>
-                                            </li>
-                                            <li class="sender">
-                                                <p> Hey, Are you there? </p>
-                                                <span class="time">10:26 am</span>
-                                            </li>
-                                            <li class="sender">
-                                                <p> Hey, Are you there? </p>
-                                                <span class="time">10:32 am</span>
-                                            </li>
-                                            <li class="repaly">
-                                                <p>How are you?</p>
-                                                <span class="time">10:35 am</span>
-                                            </li>
-                                            <li>
-                                                <div class="divider">
-                                                    <h6>Today</h6>
-                                                </div>
-                                            </li>
+                                            @if (currentChat != null && currentChat.Messages.Count > 0)
+                                            {
+                                                var sorted = currentChat.Messages.OrderBy(x => x.CreatedAt);
 
-                                            <li class="repaly">
-                                                <p> yes, tell me</p>
-                                                <span class="time">10:36 am</span>
-                                            </li>
-                                            <li class="repaly">
-                                                <p>yes... on it</p>
-                                                <span class="time">junt now</span>
-                                            </li>
+                                                var prevDt = DateTime.MinValue;
+                                                @foreach (var msg in sorted)
+                                                {
+                                                    @if (prevDt != msg.CreatedAt.Date)
+                                                    {
+                                                        prevDt = msg.CreatedAt.Date;
+                                                        <li>
+                                                            <div class="divider">
+                                                                <h6>@prevDt.ToLocalTime().ToShortDateString()</h6>
+                                                            </div>
+                                                        </li>
+                                                    }
 
+                                                    <MessageItem Message="msg"></MessageItem>
+                                                    
+                                                }
+                                            }
+
+                                            
                                         </ul>
                                     </div>
                                 </div>
@@ -169,7 +157,7 @@
 
                                     <div class="send-btns">
                                         <div class="attach">
-                                            <div class="button-wrapper">
+                                            @* <div class="button-wrapper">
                                                 <span class="label">
                                                     <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/upload.svg" alt="image title"> attached file 
                                                 </span><input type="file" name="upload" id="upload" class="upload-box" placeholder="Upload File" aria-label="Upload File">
@@ -179,11 +167,11 @@
                                                 <option>Select template</option>
                                                 <option>Template 1</option>
                                                 <option>Template 2</option>
-                                            </select>
+                                            </select> 
 
                                             <div class="add-apoint">
                                                 <a href="#" data-toggle="modal" data-target="#exampleModal4"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewbox="0 0 16 16" fill="none"><path d="M8 16C3.58862 16 0 12.4114 0 8C0 3.58862 3.58862 0 8 0C12.4114 0 16 3.58862 16 8C16 12.4114 12.4114 16 8 16ZM8 1C4.14001 1 1 4.14001 1 8C1 11.86 4.14001 15 8 15C11.86 15 15 11.86 15 8C15 4.14001 11.86 1 8 1Z" fill="#7D7D7D"/><path d="M11.5 8.5H4.5C4.224 8.5 4 8.276 4 8C4 7.724 4.224 7.5 4.5 7.5H11.5C11.776 7.5 12 7.724 12 8C12 8.276 11.776 8.5 11.5 8.5Z" fill="#7D7D7D"/><path d="M8 12C7.724 12 7.5 11.776 7.5 11.5V4.5C7.5 4.224 7.724 4 8 4C8.276 4 8.5 4.224 8.5 4.5V11.5C8.5 11.776 8.276 12 8 12Z" fill="#7D7D7D"/></svg> Appoinment</a>
-                                            </div>
+                                            </div>*@
                                         </div>
                                     </div>
 
@@ -191,6 +179,7 @@
                             </div>
                         </div>
                     </div>
+                    }
                 </div>
                 <!-- chatbox -->
 
@@ -202,11 +191,28 @@
 
 @code{
     public IEnumerable<ChatDto> GetChats(bool isJoined) {
-        return state.ChatsView.Chats;
+        return state.ChatsView?.Chats ?? Enumerable.Empty<ChatDto>();
     }
     private ChatDto? currentChat = null;
     public void ChatClicked(ChatDto chat)
     {
         currentChat = chat;
+    }
+
+    protected override void OnInitialized()
+    {
+        bus.Subscribe(this);
+    }
+    public void Dispose()
+    {
+        bus?.UnSubscribe(this);
+    }
+    public Task Handle(Event ev)
+    {
+        if (ev is AppState.AppStateChangedEvent)
+        {
+            StateHasChanged();
+        }
+        return Task.CompletedTask;
     }
 }

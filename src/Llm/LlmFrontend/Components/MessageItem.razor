@@ -1,13 +1,39 @@
 ﻿@using LlmCommon.Dtos
+@using LlmFrontend.Infrastructure
+@using System.Globalization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-
-
-<li class="repaly">
+@{
+    var cl = IsFromCurrent ? "sender" : "repaly";
+}
+<li class="@cl">
     <p>@Message.Text</p>
-    <span class="time">junt now</span>
+    <span class="time">@ConvertDateTimeOffsetToLocalTimeString(Message.CreatedAt)</span>
 </li>
 
 @code {
+
+    public static string ConvertDateTimeOffsetToLocalTimeString(DateTimeOffset dateTimeOffset)
+    {
+        // Преобразуем DateTimeOffset в локальное время
+        DateTime localTime = dateTimeOffset.ToLocalTime().DateTime;
+
+        // Получаем текущую культуру
+        CultureInfo currentCulture = CultureInfo.CurrentCulture;
+
+        // Форматируем время в строку с использованием текущей культуры
+        return localTime.ToString("HH:mm:ss", currentCulture);
+    }
+
+
+    private bool IsFromCurrent => Message != null && currentUser.Id == Message.User.Id;
+    private User currentUser = User.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        currentUser = res.User.ToUser();
+        await base.OnInitializedAsync();
+    }
     [Parameter]
     public MessageDto Message { get; set; } = null!;
 }
