@@ -1,5 +1,6 @@
 ﻿using LlmCommon;
 using LlmCommon.Abstractions;
+using LlmCommon.Transport;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace LlmFrontend.Infrastructure
@@ -17,12 +18,15 @@ namespace LlmFrontend.Infrastructure
 
         public Task Handle(Command cmd)
         {
-            return hubConnection.InvokeAsync("ExecCommand", cmd);
+            return hubConnection.InvokeAsync("ExecCommand", new Envelope(Ids.dir.GenerateId(), cmd));
         }
 
-        public Task<TV> HandleQuery<TV>(Query<TV> query) where TV : View
+        public async Task<View> HandleQuery(Query query)
         {
-            return hubConnection.InvokeAsync<TV>("ExecQuery", query);
+            var e = new Envelope(Ids.dir.GenerateId(), query);
+            var res = await hubConnection.InvokeAsync<Envelope>("ExecQuery", e);
+
+            return res.Get<View>();
         }
     }
 }

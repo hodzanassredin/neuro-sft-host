@@ -4,6 +4,7 @@ using LlmCommon.Abstractions;
 using LlmCommon.Dtos;
 using LlmCommon.Entities;
 using LlmCommon.Implementations;
+using LlmCommon.Transport;
 using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -34,13 +35,15 @@ namespace LlmBackend.Hubs
         }
 
         [Authorize]
-        public async Task ExecCommand(Command cmd)
+        public async Task ExecCommand(Envelope e)
         {
+            var cmd = e.Get<Command>();
             await cmd.Accept(GetExecutor());
         }
         [Authorize]
-        public async Task<TV> ExecQuery<TV>(Query<TV> q) where TV:View
+        public async Task<Envelope> ExecQuery(Envelope e)
         {
+            var q = e.Get<Query>();
             var res = await q.Accept(GetExecutor());
             var user = GetCurrentUser();
             if (res is AllChatsView acq) {
@@ -53,7 +56,7 @@ namespace LlmBackend.Hubs
                     }
                 }
             }
-            return res;
+            return new Envelope(e.CorellationId, res);
         }
         public override async Task OnConnectedAsync()
         {

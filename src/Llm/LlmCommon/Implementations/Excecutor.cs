@@ -73,7 +73,7 @@ namespace LlmCommon.Implementations
             await eventBus.PublishEventsFrom(chat);
         }
 
-        public async Task<AllChatsView> Get(AllChatsQuery q)
+        public async Task<View> Get(AllChatsQuery q)
         {
             var allChats = await chats.GetAll();
             return new AllChatsView() { 

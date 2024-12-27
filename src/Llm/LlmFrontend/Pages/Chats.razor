@@ -14,33 +14,45 @@
 @implements IDisposable
 
 <PageTitle>Chats</PageTitle>
-
-
-<ul class="list-group">
-    @foreach (var chat in state.ChatsView.Chats)
-    {
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            @chat.Name (owner: @chat.Owner.Name)
-            <span class="badge badge-primary badge-pill">@chat.Messages.Count</span>
-        </li>
-    }
-</ul>
-@if (currentChat != null)
-{
-    <div class="form-group">
-        <label>
-            Message:
-            <input @bind="messageInput" size="50" />
-        </label>
+<div class="row">
+    <div class="col-6">
+        <ul class="list-group">
+            @foreach (var chat in state.ChatsView.Chats)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @chat.Name (owner: @chat.Owner.Name)
+                    <span class="badge badge-primary badge-pill">@chat.Messages.Count</span>
+                </li>
+            }
+        </ul>
     </div>
-    <button @onclick="Send" disabled="@(!handler.IsConnected)">Send</button>
-
-    @foreach (var item in state.ChatsView.Chats)
+    @if (currentChat != null)
     {
+        <div class="col-6">
+            <div class="form-group">
+                <label>
+                    Message:
+                    <input @bind="messageInput" size="50" />
+                </label>
+            </div>
+            <button @onclick="Send" disabled="@(!handler.IsConnected)">Send</button>
+    
+
+            @foreach (var item in currentChat.Messages)
+            {
+                <div class="card w-75">
+                    <div class="card-body">
+                        <h5 class="card-title">Card title</h5>
+                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                        <a href="#" class="btn btn-primary">Button</a>
+                    </div>
+                </div>
+            
+            }
+        </div>
 
     }
-}
-
+</div>
 @code {
     private ChatDto? currentChat = null;
 

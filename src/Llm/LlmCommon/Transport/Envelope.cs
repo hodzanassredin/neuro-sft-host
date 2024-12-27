@@ -7,7 +7,7 @@ namespace LlmCommon.Transport
 {
     public class Envelope
     {
-        private Envelope()
+        public Envelope()
         {
 
         }
@@ -33,6 +33,13 @@ namespace LlmCommon.Transport
             var type = typeof(Envelope).Assembly.GetType(Type);
             if (type == null) throw new ArgumentOutOfRangeException("type");
             return JsonSerializer.Deserialize(Payload, type);
+        }
+
+        public T? Get<T>()
+        {
+            var type = typeof(Envelope).Assembly.GetType(Type);
+            if (type == null || !type.IsAssignableTo(typeof(T))) throw new ArgumentOutOfRangeException("type");
+            return (T)JsonSerializer.Deserialize(Payload, type);
         }
     }
 }

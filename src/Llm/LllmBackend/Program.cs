@@ -1,6 +1,8 @@
 using LlmBackend.Auth;
 using LlmBackend.Hubs;
+using LlmBackend.Infrastructure;
 using LlmCommon.Abstractions;
+using LlmCommon.Entities;
 using LlmCommon.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -28,7 +30,10 @@ namespace LlmBackend
                         .AllowCredentials()
                         ));
 
-            builder.Services.AddSignalR();
+            builder.Services.AddSignalR().AddHubOptions<ChatHub>(options =>
+            {
+                options.EnableDetailedErrors = true;
+            });
             // Add services to the container.
             //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             //    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
@@ -57,7 +62,7 @@ namespace LlmBackend
 
             // configure authorization
             builder.Services.AddAuthorizationBuilder();
-            
+            builder.Services.AddScoped<IEntityStorage<ChatEntity>, InMemoryEntityStorage<ChatEntity>>();
 
             // add the database (in memory for the sample)
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("AppDbContext")));

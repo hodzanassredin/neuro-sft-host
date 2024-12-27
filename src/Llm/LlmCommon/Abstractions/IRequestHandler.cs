@@ -4,7 +4,7 @@ namespace LlmCommon.Abstractions
     public interface IRequestHandler
     {
         Task Handle(Command cmd);
-        Task<TV> HandleQuery<TV>(Query<TV> query) where TV : View;
+        Task<View> HandleQuery(Query query);
 
         bool IsConnected { get; }
     }

@@ -13,21 +13,23 @@ namespace LlmFrontend.Infrastructure
             public static AppStateChangedEvent Instance = new AppStateChangedEvent();
         }
 
-        public AppState(IRequestHandler handler, IEventBus bus)
+        public AppState(IServiceProvider sp, IEventBus bus, IRequestHandler handler)
         {
-            this.handler = handler;
+            this.sp = sp;
             this.bus = bus;
+            this.handler = handler;
             bus.Subscribe(this);
         }
         private AllChatsView? chats;
 
         public AllChatsView ChatsView => chats;
 
-        private readonly IRequestHandler handler;
+        private readonly IServiceProvider sp;
         private readonly IEventBus bus;
+        private readonly IRequestHandler handler;
 
         public async Task LoadAsync() {
-            chats = await this.handler.HandleQuery(AllChatsQuery.Instance);
+            chats = await handler.HandleQuery(AllChatsQuery.Instance) as AllChatsView;
         }
 
         public void Dispose()

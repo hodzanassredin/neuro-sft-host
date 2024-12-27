@@ -1,5 +1,7 @@
+using LlmCommon;
 using LlmCommon.Abstractions;
 using LlmCommon.Implementations;
+using LlmCommon.Transport;
 using LlmFrontend.Identity;
 using LlmFrontend.Infrastructure;
 using Microsoft.AspNetCore.Components;
@@ -8,6 +10,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.SignalR.Client;
+using System.Diagnostics;
 
 namespace LlmFrontend
 {
@@ -34,16 +37,15 @@ namespace LlmFrontend
             builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
             builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
             builder.Services.AddSingleton<AppState>();
-            builder.Services.AddScoped<IRequestHandler, SignalRRequestHandler>();
             
             // register the account management interface
             builder.Services.AddScoped(
                 sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
-            builder.Services.AddScoped(sp =>
+            builder.Services.AddSingleton(sp =>
             {
                 //var navMan = sp.GetRequiredService<NavigationManager>();
                 //var accessTokenProvider = sp.GetRequiredService<IAccessTokenProvider>();
-                return new HubConnectionBuilder()
+                var hubConnection = new HubConnectionBuilder()
                     //.WithUrl(navMan.ToAbsoluteUri("/hub"), options =>
                     //{
                     //    options.AccessTokenProvider = async () =>
@@ -59,9 +61,29 @@ namespace LlmFrontend
                         })
                     .WithAutomaticReconnect()
                     .Build();
-            });
 
-            
+                hubConnection.On<Envelope>("ReceiveEvent", envelope =>
+                {
+                    var logger = sp.GetRequiredService<ILogger<HubConnection>>();
+                    var eventBus = sp.GetRequiredService<IEventBus>();
+                    try
+                    {
+                        var ev = envelope.Get<Event>();
+                        Debug.Assert(ev != null);
+                        eventBus.Publish(ev);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, $"Cant proccess event from eventhub {envelope.CorellationId}");
+
+                        throw;
+                    }
+                });
+                return hubConnection;
+            });
+            builder.Services.AddSingleton<IRequestHandler, SignalRRequestHandler>();
+
+
             builder.Services.AddScoped(sp =>
                 new HttpClient { BaseAddress = new Uri(front) });
             // configure client for auth interactions

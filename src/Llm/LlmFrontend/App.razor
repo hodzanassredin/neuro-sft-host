@@ -38,24 +38,8 @@
     [Inject] IServiceProvider sp { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        await state.LoadAsync();
-        hubConnection.On<Event>("ReceiveEvent", envelope =>
-        {
-            var logger = sp.GetRequiredService<ILogger<HubConnection>>();
-            try
-            {
-                var ev = envelope;// (Event)envelope.Get();
-                Debug.Assert(ev != null);
-                eventBus.Publish(ev);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Cant proccess event from eventhub");
-
-                throw;
-            }
-        });
-
         await hubConnection.StartAsync();
+
+        await state.LoadAsync();
     }
 }
