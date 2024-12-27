@@ -2,6 +2,7 @@
 using LlmCommon;
 using LlmCommon.Abstractions;
 using LlmCommon.Events;
+using LlmCommon.Transport;
 using Microsoft.AspNetCore.SignalR;
 
 namespace LlmBackend.Infrastructure
@@ -21,31 +22,31 @@ namespace LlmBackend.Infrastructure
 
         public async Task<bool> Visit(ChangedMessageEvent ev)
         {
-            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
         public async Task<bool> Visit(CreatedChatEvent ev)
         {
-            await this.hub.Clients.All.SendAsync("HandleEvent", ev);
+            await this.hub.Clients.All.HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
         public async Task<bool> Visit(CreatedMessageEvent ev)
         {
-            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
         public async Task<bool> Visit(RemovedChatEvent ev)
         {
-            await this.hub.Clients.All.SendAsync("HandleEvent", ev);
+            await this.hub.Clients.All.HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
         public async Task<bool> Visit(RemovedMessageEvent ev)
         {
-            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 

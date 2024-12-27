@@ -11,7 +11,7 @@ namespace LlmCommon.Entities
         private ChatEntity() { }
         public ChatEntity(string name, User user)
         {
-            Apply(new Events.CreatedChatEvent(Ids.dir.GenerateId(), name, user));
+            Exec(new Events.CreatedChatEvent(Ids.dir.GenerateId(), name, user));
         }
         [JsonInclude]
         private ChatDto dto;
@@ -66,24 +66,24 @@ namespace LlmCommon.Entities
         public void AddMessage(string text, User user) {
             var isSubscriber = this.dto.Subscribers.Any(x => x.Id == user.Id);
             CheckAuth(isSubscriber || user.Id == this.dto.Owner.Id);
-            Apply(new CreatedMessageEvent(user, this.Id, Ids.dir.GenerateId(), text));
+            Exec(new CreatedMessageEvent(user, this.Id, Ids.dir.GenerateId(), text));
         }
         public void ChangeMessage(User user, Ids.Id messageId, string text) {
             var msg = this.dto.Messages.Single(x => x.Id == messageId);
             CheckAuth(user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
-            Apply(new ChangedMessageEvent(this.Id, messageId, text, user));
+            Exec(new ChangedMessageEvent(this.Id, messageId, text, user));
         }
         public void Remove(User user)
         {
             CheckAuth(user.Id == this.dto.Owner.Id);
-            Apply(new RemovedChatEvent(this.Id));
+            Exec(new RemovedChatEvent(this.Id));
         }
 
         public void RemoveMessage(User user, Ids.Id messageId)
         {
             var msg = this.dto.Messages.Single(x=>x.Id == messageId);
             CheckAuth(user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
-            Apply(new RemovedMessageEvent(this.Id, messageId));
+            Exec(new RemovedMessageEvent(this.Id, messageId));
         }
 
         private void CheckAuth(bool pred) { 
@@ -95,7 +95,7 @@ namespace LlmCommon.Entities
             var isSubscribed = this.dto.Subscribers.Any(x => x.Id == user.Id);
             if (!isSubscribed)
             {
-                Apply(new UserJoinEvent(this.Id, user));
+                Exec(new UserJoinEvent(this.Id, user));
             }
         }
         public void Leave(User user)
@@ -103,7 +103,7 @@ namespace LlmCommon.Entities
             var isSubscribed = this.dto.Subscribers.Any(x => x.Id == user.Id);
             if (isSubscribed)
             {
-                Apply(new UserLeaveEvent(this.Id, user));
+                Exec(new UserLeaveEvent(this.Id, user));
             }
         }
 

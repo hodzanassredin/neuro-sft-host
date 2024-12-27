@@ -8,10 +8,15 @@ using LlmCommon.Transport;
 using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using static LlmCommon.Ids;
 
 namespace LlmBackend.Hubs
 {
-    public class ChatHub : Hub, IContext
+    public interface IChatClient
+    {
+        Task HandleEvent(Envelope e);
+    }
+    public class ChatHub : Hub<IChatClient>, IContext
     {
         private readonly static ConnectionMapping<string> _connections =
             new ConnectionMapping<string>();
@@ -84,7 +89,7 @@ namespace LlmBackend.Hubs
         public User GetCurrentUser()
         {
             var name = Context.User?.Identity?.Name?? String.Empty;
-            return new User(name, name);
+            return new User(Ids.Parse(name), name);
         }
     }
 }

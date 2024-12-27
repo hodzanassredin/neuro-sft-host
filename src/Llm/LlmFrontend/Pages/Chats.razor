@@ -14,46 +14,59 @@
 @implements IDisposable
 
 <PageTitle>Chats</PageTitle>
+
 <div class="row">
     <div class="col-6">
-        <ul class="list-group">
-            @foreach (var chat in state.ChatsView.Chats)
-            {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    @chat.Name (owner: @chat.Owner.Name)
-                    <span class="badge badge-primary badge-pill">@chat.Messages.Count</span>
-                </li>
-            }
-        </ul>
-    </div>
-    @if (currentChat != null)
-    {
-        <div class="col-6">
-            <div class="form-group">
-                <label>
-                    Message:
-                    <input @bind="messageInput" size="50" />
-                </label>
-            </div>
-            <button @onclick="Send" disabled="@(!handler.IsConnected)">Send</button>
-    
-
-            @foreach (var item in currentChat.Messages)
-            {
-                <div class="card w-75">
-                    <div class="card-body">
-                        <h5 class="card-title">Card title</h5>
-                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                        <a href="#" class="btn btn-primary">Button</a>
-                    </div>
-                </div>
-            
-            }
+        <div class="input-group">
+            <input @bind="chatName" bind-value:event="oninput" type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Chat name">
+            <button disabled="@IsAddChatDisabled" @onclick="AddChat" type="submit" class="btn btn-primary mb-2">Add chat</button>
         </div>
-
-    }
+    </div>
 </div>
+
+@if (state.ChatsView != null){
+    <div class="row">
+        <div class="col-6">
+            <ul class="list-group">
+                @foreach (var chat in state.ChatsView.Chats)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @chat.Name (owner: @chat.Owner.Name)
+                        <span class="badge badge-primary badge-pill">@chat.Messages.Count</span>
+                    </li>
+                }
+            </ul>
+        </div>
+        @if (currentChat != null)
+        {
+            <div class="col-6">
+                <div class="form-group">
+                    <label>
+                        Message:
+                        <input @bind="messageInput" size="50" />
+                    </label>
+                </div>
+                <button @onclick="Send" disabled="@(!handler.IsConnected)">Send</button>
+
+
+                @foreach (var item in currentChat.Messages)
+                {
+                    <div class="card w-75">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                            <a href="#" class="btn btn-primary">Button</a>
+                        </div>
+                    </div>
+
+                }
+            </div>
+        }
+    </div>
+}
 @code {
+    private string chatName = String.Empty;
+    private bool IsAddChatDisabled => String.IsNullOrWhiteSpace(chatName);
     private ChatDto? currentChat = null;
 
     private string messageInput = String.Empty;
@@ -65,7 +78,10 @@
     public void Dispose() { 
         bus?.UnSubscribe(this);
     }
-
+    private async Task AddChat() { 
+        await handler.Handle(new LlmCommon.Commands.Chat.AddChatCommand(chatName));
+        chatName = string.Empty;
+    }
     private async Task Send()
     {
         if (currentChat != null)

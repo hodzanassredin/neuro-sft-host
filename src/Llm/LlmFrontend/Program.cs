@@ -62,7 +62,7 @@ namespace LlmFrontend
                     .WithAutomaticReconnect()
                     .Build();
 
-                hubConnection.On<Envelope>("ReceiveEvent", envelope =>
+                hubConnection.On<Envelope>("HandleEvent", envelope =>
                 {
                     var logger = sp.GetRequiredService<ILogger<HubConnection>>();
                     var eventBus = sp.GetRequiredService<IEventBus>();

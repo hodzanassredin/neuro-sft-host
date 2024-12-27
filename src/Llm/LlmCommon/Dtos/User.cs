@@ -4,14 +4,14 @@ namespace LlmCommon.Dtos
 {
     public class User 
     {
-        public User(string id, string name)
+        public User(Ids.Id id, string name)
         {
-            Id = Ids.Parse(id);
+            Id = id;
             Name = name;
         }
         public Ids.Id Id { get; set; }
         public string Name { get; set; }
 
-        public static readonly User Empty = new User(String.Empty, "anonymouse");
+        public static readonly User Empty = new User(Ids.Empty, "anonymouse");
     }
 }

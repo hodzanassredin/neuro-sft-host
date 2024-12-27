@@ -1,5 +1,6 @@
 ﻿using LlmCommon;
 using LlmCommon.Abstractions;
+using static LlmCommon.Ids;
 
 namespace LlmBackend.Infrastructure
 {
@@ -26,9 +27,10 @@ namespace LlmBackend.Infrastructure
 
         public async Task Upsert(T entity)
         {
-            if (entity.Id != Ids.Empty)
+            var ex = _items.SingleOrDefault(x => x.Id == entity.Id);
+            if (ex!= null)
             {
-                await Remove(entity.Id);
+                _items.Remove(ex);
                 
             }
             _items.Add(entity);
