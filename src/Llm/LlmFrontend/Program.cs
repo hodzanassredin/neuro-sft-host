@@ -1,4 +1,7 @@
+using LlmCommon.Abstractions;
+using LlmCommon.Implementations;
 using LlmFrontend.Identity;
+using LlmFrontend.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -29,7 +32,10 @@ namespace LlmFrontend
 
             // register the custom state provider
             builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
-
+            builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
+            builder.Services.AddSingleton<AppState>();
+            builder.Services.AddScoped<IRequestHandler, SignalRRequestHandler>();
+            
             // register the account management interface
             builder.Services.AddScoped(
                 sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());

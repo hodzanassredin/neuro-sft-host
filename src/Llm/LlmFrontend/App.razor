@@ -1,4 +1,14 @@
-﻿<CascadingAuthenticationState>
+﻿@using LlmCommon
+@using LlmCommon.Abstractions
+@using LlmCommon.Transport
+@using LlmFrontend.Infrastructure
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Diagnostics
+@inject HubConnection hubConnection
+@inject IEventBus eventBus
+@inject AppState state
+
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -23,3 +33,29 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code   {
+    [Inject] IServiceProvider sp { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await state.LoadAsync();
+        hubConnection.On<Event>("ReceiveEvent", envelope =>
+        {
+            var logger = sp.GetRequiredService<ILogger<HubConnection>>();
+            try
+            {
+                var ev = envelope;// (Event)envelope.Get();
+                Debug.Assert(ev != null);
+                eventBus.Publish(ev);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cant proccess event from eventhub");
+
+                throw;
+            }
+        });
+
+        await hubConnection.StartAsync();
+    }
+}

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace LlmBackend.Infrastructure
 {
-    public class ChatHubEventHandler : IEventHandler
+    public class ChatHubEventHandler : IChatsEventHandler, IEventHandler
     {
         private readonly ChatHub hub;
 
@@ -19,46 +19,60 @@ namespace LlmBackend.Infrastructure
             return chatId.ToString();
         }
 
-        public Task Visit(ChangedMessageEvent ev)
+        public async Task<bool> Visit(ChangedMessageEvent ev)
         {
-            return this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            return true;
         }
 
-        public Task Visit(CreatedChatEvent ev)
+        public async Task<bool> Visit(CreatedChatEvent ev)
         {
-            return this.hub.Clients.All.SendAsync("HandleEvent", ev);
+            await this.hub.Clients.All.SendAsync("HandleEvent", ev);
+            return true;
         }
 
-        public Task Visit(CreatedMessageEvent ev)
+        public async Task<bool> Visit(CreatedMessageEvent ev)
         {
-            return this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            return true;
         }
 
-        public Task Visit(RemovedChatEvent ev)
+        public async Task<bool> Visit(RemovedChatEvent ev)
         {
-            return this.hub.Clients.All.SendAsync("HandleEvent", ev);
+            await this.hub.Clients.All.SendAsync("HandleEvent", ev);
+            return true;
         }
 
-        public Task Visit(RemovedMessageEvent ev)
+        public async Task<bool> Visit(RemovedMessageEvent ev)
         {
-            return this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).SendAsync("HandleEvent", ev);
+            return true;
         }
 
-        public async Task Visit(UserJoinEvent ev)
+        public async Task<bool> Visit(UserJoinEvent ev)
         {
             var connections = this.hub.GetCurrentUserConnections();
             foreach (var connId in connections)
             {
                 await this.hub.Groups.AddToGroupAsync(connId, GetGroupName(ev.ChatId));
             }
+            return true;
         }
 
-        public async Task Visit(UserLeaveEvent ev)
+        public async Task<bool> Visit(UserLeaveEvent ev)
         {
             var connections = this.hub.GetCurrentUserConnections();
             foreach (var connId in connections)
             {
                 await this.hub.Groups.RemoveFromGroupAsync(connId, GetGroupName(ev.ChatId));
+            }
+            return true;
+        }
+
+        public async Task Handle(Event ev)
+        {
+            if (ev is ChatEvent cev) { 
+                await cev.Accept(this);
             }
         }
     }

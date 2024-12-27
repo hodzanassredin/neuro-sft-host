@@ -2,7 +2,7 @@
 
 namespace LlmCommon.Events
 {
-    public class RemovedMessageEvent : Event
+    public class RemovedMessageEvent : ChatEvent
     {
         public Ids.Id ChatId { get; set; } = Ids.Empty;
 
@@ -14,7 +14,7 @@ namespace LlmCommon.Events
 
         public Ids.Id MessageId { get; set; } = Ids.Empty;
 
-        public override Task Accept(IEventHandler visitor)
+        public override Task<bool> Accept(IChatsEventHandler visitor)
         {
             return visitor.Visit(this);
         }

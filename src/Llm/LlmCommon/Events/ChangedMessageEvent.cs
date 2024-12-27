@@ -4,7 +4,7 @@ using LlmCommon.Dtos;
 
 namespace LlmCommon.Events
 {
-    public class ChangedMessageEvent : Event
+    public class ChangedMessageEvent : ChatEvent
     {
         public ChangedMessageEvent(Ids.Id chatId, Ids.Id messageId, string message, User user)
         {
@@ -18,7 +18,7 @@ namespace LlmCommon.Events
         public Ids.Id MessageId { get; set; } = Ids.Empty;
         public User User { get; set; }
 
-        public override Task Accept(IEventHandler visitor)
+        public override Task<bool> Accept(IChatsEventHandler visitor)
         {
             return visitor.Visit(this);
         }

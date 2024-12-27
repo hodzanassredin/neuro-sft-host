@@ -3,7 +3,7 @@ using LlmCommon.Abstractions;
 
 namespace LlmCommon.Events
 {
-    public class RemovedChatEvent : Event
+    public class RemovedChatEvent : ChatEvent
     {
         public Ids.Id ChatId { get; set; }
 
@@ -11,7 +11,7 @@ namespace LlmCommon.Events
         {
             ChatId = chatId;
         }
-        public override Task Accept(IEventHandler visitor)
+        public override Task<bool> Accept(IChatsEventHandler visitor)
         {
             return visitor.Visit(this);
         }

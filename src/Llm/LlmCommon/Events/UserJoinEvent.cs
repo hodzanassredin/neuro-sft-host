@@ -3,7 +3,7 @@ using LlmCommon.Dtos;
 
 namespace LlmCommon.Events
 {
-    public class UserJoinEvent : Event
+    public class UserJoinEvent : ChatEvent
     {
         public Ids.Id ChatId { get; set; }
 
@@ -15,7 +15,7 @@ namespace LlmCommon.Events
 
         public User User { get; set; }
 
-        public override Task Accept(IEventHandler visitor)
+        public override Task<bool> Accept(IChatsEventHandler visitor)
         {
             return visitor.Visit(this);
         }

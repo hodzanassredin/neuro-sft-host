@@ -1,74 +1,71 @@
 ﻿@page "/chats"
+@using LlmCommon
+@using LlmCommon.Abstractions
+@using LlmCommon.Dtos
 @using LlmFrontend.Identity
-@using Microsoft.AspNetCore.SignalR.Client
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@* @inject IAccessTokenProvider TokenProvider *@
+@using LlmFrontend.Infrastructure
 @inject NavigationManager Navigation
 @inject IConfiguration config
-@implements IAsyncDisposable
 @inject IJSRuntime js
-@inject HubConnection hubConnection
+@inject AppState state
+@inject IEventBus bus
+@inject IRequestHandler handler
+@implements IEventHandler
+@implements IDisposable
 
-<PageTitle>Chat</PageTitle>
+<PageTitle>Chats</PageTitle>
 
-<div class="form-group">
-    <label>
-        User:
-        <input @bind="userInput" />
-    </label>
-</div>
-<div class="form-group">
-    <label>
-        Message:
-        <input @bind="messageInput" size="50" />
-    </label>
-</div>
-<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
 
-<hr>
-
-<ul id="messagesList">
-    @foreach (var message in messages)
+<ul class="list-group">
+    @foreach (var chat in state.ChatsView.Chats)
     {
-        <li>@message</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            @chat.Name (owner: @chat.Owner.Name)
+            <span class="badge badge-primary badge-pill">@chat.Messages.Count</span>
+        </li>
     }
 </ul>
+@if (currentChat != null)
+{
+    <div class="form-group">
+        <label>
+            Message:
+            <input @bind="messageInput" size="50" />
+        </label>
+    </div>
+    <button @onclick="Send" disabled="@(!handler.IsConnected)">Send</button>
+
+    @foreach (var item in state.ChatsView.Chats)
+    {
+
+    }
+}
 
 @code {
-    private List<string> messages = [];
-    private string? userInput;
-    private string? messageInput;
+    private ChatDto? currentChat = null;
 
+    private string messageInput = String.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
-        {
-            var encodedMsg = $"{user}: {message}";
-            messages.Add(encodedMsg);
-            InvokeAsync(StateHasChanged);
-        });
-
-        await hubConnection.StartAsync();
-
+        bus.Subscribe(this);
+    }
+    public void Dispose() { 
+        bus?.UnSubscribe(this);
     }
 
     private async Task Send()
     {
-        if (hubConnection is not null)
+        if (currentChat != null)
         {
-            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+            await handler.Handle(new LlmCommon.Commands.Chat.AddMessageCommand(currentChat.Id, messageInput));
         }
     }
 
-    public bool IsConnected =>
-        hubConnection?.State == HubConnectionState.Connected;
-
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
+    public Task Handle(Event ev) {
+        if (ev is AppState.AppStateChangedEvent) {
+            StateHasChanged();
         }
+        return Task.CompletedTask;
     }
 }

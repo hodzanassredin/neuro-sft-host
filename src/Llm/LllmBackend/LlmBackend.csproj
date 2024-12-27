@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LllmChat\LlmChat.csproj" />
     <ProjectReference Include="..\LlmCommon\LlmCommon.csproj" />
   </ItemGroup>
 

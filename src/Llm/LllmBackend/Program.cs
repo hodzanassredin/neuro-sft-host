@@ -1,6 +1,7 @@
 using LlmBackend.Auth;
 using LlmBackend.Hubs;
-using LlmChat;
+using LlmCommon.Abstractions;
+using LlmCommon.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -67,9 +68,9 @@ namespace LlmBackend
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddApiEndpoints()
                 .AddDefaultTokenProviders();
-            
 
 
+            builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
 
 
 
@@ -86,12 +87,12 @@ namespace LlmBackend
                     ["application/octet-stream"]);
             });
 
-            builder.Host.UseOrleans(static siloBuilder =>
-            {
-                siloBuilder.UseLocalhostClustering()
-                           .AddMemoryGrainStorage("PubSubStore")
-                           .AddMemoryStreams(Constants.ChatsStreamStorage);
-            });
+            //builder.Host.UseOrleans(static siloBuilder =>
+            //{
+            //    siloBuilder.UseLocalhostClustering()
+            //               .AddMemoryGrainStorage("PubSubStore")
+            //               .AddMemoryStreams(Constants.ChatsStreamStorage);
+            //});
 
 
             var app = builder.Build();

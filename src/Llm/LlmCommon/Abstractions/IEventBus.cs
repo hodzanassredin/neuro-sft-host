@@ -11,5 +11,6 @@ namespace LlmCommon.Abstractions
         }
         Task Publish(Event @event);
         void Subscribe(IEventHandler handler);
+        void UnSubscribe(IEventHandler handler);
     }
 }
