@@ -80,5 +80,17 @@ namespace LlmCommon.Implementations
                 Chats = allChats.Select(x=>x.Dto).ToList(),
             };
         }
+
+        public async Task Visit(ChangeChatCommand cmd)
+        {
+            var chat = await chats.Load(cmd.ChatId);
+            var user = ctx.GetCurrentUser();
+            if (chat.Dto.Owner.Id == user.Id)
+            {
+                chat.ChangeChat(user, cmd.Text);
+                await chats.Upsert(chat);
+                await eventBus.PublishEventsFrom(chat);
+            }
+        }
     }
 }

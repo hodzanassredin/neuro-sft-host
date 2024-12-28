@@ -29,6 +29,10 @@ namespace LlmCommon.Entities
                         Owner = createdChatEvent.Owner,
                     };
                     break;
+                case ChangedChatEvent changedChatEvent:
+                    Debug.Assert(changedChatEvent.ChatId == this.Id);
+                    dto.Name = changedChatEvent.Name;
+                    break;
                 case CreatedMessageEvent createdMessageEvent:
                     Debug.Assert(createdMessageEvent.ChatId == this.Id);
                     dto.Messages.Add(new MessageDto { 
@@ -72,6 +76,12 @@ namespace LlmCommon.Entities
             var msg = this.dto.Messages.Single(x => x.Id == messageId);
             CheckAuth(user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
             Exec(new ChangedMessageEvent(this.Id, messageId, text, user));
+        }
+
+        public void ChangeChat(User user, string text)
+        {
+            CheckAuth(user.Id == this.dto.Owner.Id);
+            Exec(new ChangedChatEvent(this.Id, text, user));
         }
         public void Remove(User user)
         {

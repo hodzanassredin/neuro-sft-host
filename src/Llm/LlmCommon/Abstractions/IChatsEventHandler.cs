@@ -11,5 +11,6 @@ namespace LlmCommon.Abstractions
         Task<bool> Visit(RemovedMessageEvent removedMessageEvent);
         Task<bool> Visit(UserJoinEvent userJoinEvent);
         Task<bool> Visit(UserLeaveEvent userLeaveEvent);
+        Task<bool> Visit(ChangedChatEvent changedChatEvent);
     }
 }

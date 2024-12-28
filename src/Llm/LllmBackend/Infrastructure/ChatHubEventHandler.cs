@@ -3,7 +3,6 @@ using LlmCommon;
 using LlmCommon.Abstractions;
 using LlmCommon.Events;
 using LlmCommon.Transport;
-using Microsoft.AspNetCore.SignalR;
 
 namespace LlmBackend.Infrastructure
 {
@@ -29,6 +28,7 @@ namespace LlmBackend.Infrastructure
         public async Task<bool> Visit(CreatedChatEvent ev)
         {
             await this.hub.Clients.All.HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
+            await AddCurrentUserToGroup(ev.ChatId);
             return true;
         }
 
@@ -52,12 +52,17 @@ namespace LlmBackend.Infrastructure
 
         public async Task<bool> Visit(UserJoinEvent ev)
         {
+            await AddCurrentUserToGroup(ev.ChatId);
+            return true;
+        }
+
+        private async Task AddCurrentUserToGroup(Ids.Id chatId)
+        {
             var connections = this.hub.GetCurrentUserConnections();
             foreach (var connId in connections)
             {
-                await this.hub.Groups.AddToGroupAsync(connId, GetGroupName(ev.ChatId));
+                await this.hub.Groups.AddToGroupAsync(connId, GetGroupName(chatId));
             }
-            return true;
         }
 
         public async Task<bool> Visit(UserLeaveEvent ev)
@@ -75,6 +80,12 @@ namespace LlmBackend.Infrastructure
             if (ev is ChatEvent cev) { 
                 await cev.Accept(this);
             }
+        }
+
+        public async Task<bool> Visit(ChangedChatEvent ev)
+        {
+            await this.hub.Clients.All.HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
+            return true;
         }
     }
 }

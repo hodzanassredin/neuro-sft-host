@@ -70,5 +70,12 @@ namespace LlmCommon.Views
             chat.Subscribers.Remove(exUser);
             return Task.FromResult(true);
         }
+
+        public Task<bool> Visit(ChangedChatEvent ev)
+        {
+            var chat = Chats.Single(x => x.Id == ev.ChatId);
+            chat.Name = ev.Name;
+            return Task.FromResult(true);
+        }
     }
 }

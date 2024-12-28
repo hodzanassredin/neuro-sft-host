@@ -1,0 +1,24 @@
+﻿@if (IsLink){
+
+    <a @onclick="OnClick" href="#"
+       @onclick:preventDefault="true"
+       @onclick:stopPropagation="true" class="@CssClass">
+        @ChildContent
+    </a>
+
+} else{
+    <span>@ChildContent</span>
+}
+
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public bool IsLink { get; set; }
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    [Parameter]
+    public String CssClass { get; set; }
+    
+}

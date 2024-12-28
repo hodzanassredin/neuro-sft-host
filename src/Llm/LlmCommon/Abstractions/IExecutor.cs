@@ -10,5 +10,7 @@ namespace LlmCommon.Abstractions
         Task Visit(RemoveMessageCommand removeMessageCommand);
         Task Visit(RemoveChatCommand removeChatCommand);
         Task Visit(AddChatCommand addChatCommand);
+        Task Visit(ChangeChatCommand changeChatCommand);
+        
     }
 }

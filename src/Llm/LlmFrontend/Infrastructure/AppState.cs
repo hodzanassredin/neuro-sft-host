@@ -30,6 +30,7 @@ namespace LlmFrontend.Infrastructure
 
         public async Task LoadAsync() {
             chats = await handler.HandleQuery(AllChatsQuery.Instance) as AllChatsView;
+            await bus.Publish(AppStateChangedEvent.Instance);
         }
 
         public void Dispose()

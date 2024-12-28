@@ -62,7 +62,7 @@ namespace LlmBackend
 
             // configure authorization
             builder.Services.AddAuthorizationBuilder();
-            builder.Services.AddScoped<IEntityStorage<ChatEntity>, InMemoryEntityStorage<ChatEntity>>();
+            builder.Services.AddSingleton<IEntityStorage<ChatEntity>, InMemoryEntityStorage<ChatEntity>>();
 
             // add the database (in memory for the sample)
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("AppDbContext")));
