@@ -8,21 +8,22 @@ services:
         context:  .
         dockerfile: Dockerfile
     restart: always
-    env_file: "../settings.env"
+
     environment:
         - NVIDIA_VISIBLE_DEVICES=all
         - HF_HOME=/hf/
         - JUPYTER_TOKEN=token
         - HF_TOKEN=${HF_TOKEN}
-        - MODELS_HOME=${MODELS_HOME}
+        - MODELS_HOME=/models
     ports:
-      - '7778:8888'
+      - '8889:8888'
     logging:
         options:
             max-size: "10m"
             max-file: "3"
     volumes:
           - ${HF_HOME}:/hf
+          - ${MODELS_HOME}:/models
           - ./notebooks:/app/notebooks
     deploy:
       resources:

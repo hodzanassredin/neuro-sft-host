@@ -1,23 +1,45 @@
 services:
-  llm-dev-postgresql:
-      image: pgvector/pgvector:pg16 #postgis/postgis:latest
-      hostname: llmpg
-      container_name: llmpg
-      ports:
+    llm-dev-postgresql:
+        image: pgvector/pgvector:pg16 #postgis/postgis:latest
+        hostname: llmpg
+        container_name: llmpg
+        ports:
           - "5434:5432"
-      environment:
+        environment:
           POSTGRES_DB: "llm"
           POSTGRES_USER: "llm"
           POSTGRES_PASSWORD: "llm"
-      volumes:
+        volumes:
           # - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
           - ./data/postgresql:/var/lib/postgresql/data
-      healthcheck:
+        healthcheck:
           test: ["CMD-SHELL", "pg_isready -U postgresql"]
           interval: 10s
           timeout: 5s
           retries: 5
-      logging:
-        options:
-          max-size: "10m"
-          max-file: "3"
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "3"
+
+    llm-dev-inference_server:
+        image: nvcr.io/nvidia/tensorrtserver:19.05-py3
+        runtime: nvidia
+        volumes:
+            - ./models/host:/models
+        ports:
+            - 8000:8000
+            - 8002:8002
+        command: ["trtserver", "--model-store=/models"]
+        shm_size: 1g
+        ulimits:
+            memlock: -1
+            stack: 67108864
+        deploy:
+            resources:
+                reservations:
+                    memory: 16GB
+                    devices:
+                        - driver: nvidia
+                          count: 1
+                          capabilities: [gpu]
