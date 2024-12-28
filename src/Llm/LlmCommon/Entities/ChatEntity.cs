@@ -67,10 +67,13 @@ namespace LlmCommon.Entities
                     break;
             }
         }
-        public void AddMessage(string text, User user) {
+        public Ids.Id AddMessage(string text, User user) {
             var isSubscriber = this.dto.Subscribers.Any(x => x.Id == user.Id);
             CheckAuth(isSubscriber || user.Id == this.dto.Owner.Id);
-            Exec(new CreatedMessageEvent(user, this.Id, Ids.dir.GenerateId(), text));
+
+            var id = Ids.dir.GenerateId();
+            Exec(new CreatedMessageEvent(user, this.Id, id, text));
+            return id;
         }
         public void ChangeMessage(User user, Ids.Id messageId, string text) {
             var msg = this.dto.Messages.Single(x => x.Id == messageId);

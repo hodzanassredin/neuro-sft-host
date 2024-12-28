@@ -9,16 +9,22 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using System.Security.Claims;
+using Microsoft.Extensions.AI;
+using OpenAI;
+using NuGet.Configuration;
+using System.ClientModel;
 
 namespace LlmBackend
 {
     public class Program
     {
+        
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
             var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
+            var llm = builder.Configuration["LlmEndpoint"] ?? "https://localhost:9001";
             builder.Services.AddCors(
                 options => options.AddPolicy(
                     "wasm",
@@ -76,6 +82,13 @@ namespace LlmBackend
 
 
             builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
+            builder.Services.AddScoped<GenerationsManager>();
+
+            builder.Services.AddSingleton<ChatHubEventHandler>();
+            builder.Services.AddSingleton<IExecutor, Executor>();
+            builder.Services.AddSingleton<IViewStorage, Executor>();
+            
+
 
 
 
@@ -99,8 +112,21 @@ namespace LlmBackend
             //               .AddMemoryStreams(Constants.ChatsStreamStorage);
             //});
 
+            builder.Services.AddChatClient(b => 
+                new OpenAIClient(new ApiKeyCredential(""), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
+                    .AsChatClient("/models/toxic_sft_cotype/merged")
+                    .AsBuilder()
+                            .UseLogging()
+                            .UseFunctionInvocation()
+                            .UseDistributedCache()
+                            .UseOpenTelemetry()
+                            .Build(b));
+
 
             var app = builder.Build();
+
+
+
             app.UseResponseCompression();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -127,14 +153,17 @@ namespace LlmBackend
             app.MapIdentityApi<AppUser>();
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
-
-
             
+            
+
             using (var scope = app.Services.CreateScope())
             {
                 await Auth.SeedData.InitializeAsync(scope.ServiceProvider);
             }
+            var eventBus = app.Services.GetRequiredService<IEventBus>();
+            var handler = app.Services.GetRequiredService<ChatHubEventHandler>();
 
+            eventBus.Subscribe(handler);
             app.Run();
         }
     }

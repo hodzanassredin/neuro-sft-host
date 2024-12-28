@@ -1,18 +1,21 @@
 ﻿using LlmBackend.Hubs;
 using LlmCommon;
 using LlmCommon.Abstractions;
+using LlmCommon.Dtos;
 using LlmCommon.Events;
 using LlmCommon.Transport;
+using Microsoft.AspNetCore.SignalR;
 
 namespace LlmBackend.Infrastructure
 {
     public class ChatHubEventHandler : IChatsEventHandler, IEventHandler
     {
-        private readonly ChatHub hub;
+        private readonly IHubContext<ChatHub, IFrontendChatClient> hub;
 
-        public ChatHubEventHandler(ChatHub hub)
+        public ChatHubEventHandler(IHubContext<ChatHub, IFrontendChatClient> hub)
         {
             this.hub = hub;
+
         }
 
         private string GetGroupName(Ids.Id chatId) {
@@ -28,7 +31,7 @@ namespace LlmBackend.Infrastructure
         public async Task<bool> Visit(CreatedChatEvent ev)
         {
             await this.hub.Clients.All.HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
-            await AddCurrentUserToGroup(ev.ChatId);
+            await AddUserToGroup(ev.ChatId, ev.Owner);
             return true;
         }
 
@@ -52,13 +55,16 @@ namespace LlmBackend.Infrastructure
 
         public async Task<bool> Visit(UserJoinEvent ev)
         {
-            await AddCurrentUserToGroup(ev.ChatId);
+            await AddUserToGroup(ev.ChatId, ev.User);
             return true;
         }
-
-        private async Task AddCurrentUserToGroup(Ids.Id chatId)
+        public IEnumerable<string> GetUserConnections(User user)
         {
-            var connections = this.hub.GetCurrentUserConnections();
+            return ChatHub._connections.GetConnections(user);
+        }
+        private async Task AddUserToGroup(Ids.Id chatId, User user)
+        {
+            var connections = this.GetUserConnections(user);
             foreach (var connId in connections)
             {
                 await this.hub.Groups.AddToGroupAsync(connId, GetGroupName(chatId));
@@ -67,7 +73,7 @@ namespace LlmBackend.Infrastructure
 
         public async Task<bool> Visit(UserLeaveEvent ev)
         {
-            var connections = this.hub.GetCurrentUserConnections();
+            var connections = this.GetUserConnections(ev.User);
             foreach (var connId in connections)
             {
                 await this.hub.Groups.RemoveFromGroupAsync(connId, GetGroupName(ev.ChatId));

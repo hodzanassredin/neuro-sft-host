@@ -1,61 +1,47 @@
-﻿using LlmBackend.Infrastructure;
-using LlmCommon;
+﻿using LlmCommon;
 using LlmCommon.Abstractions;
 using LlmCommon.Dtos;
-using LlmCommon.Entities;
-using LlmCommon.Implementations;
 using LlmCommon.Transport;
 using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using static LlmCommon.Ids;
 
 namespace LlmBackend.Hubs
 {
-    public interface IChatClient
+    public interface IFrontendChatClient
     {
         Task HandleEvent(Envelope e);
     }
-    public class ChatHub : Hub<IChatClient>, IContext
+    public class ChatHub : Hub<IFrontendChatClient>, IContext
     {
-        private readonly static ConnectionMapping<string> _connections =
-            new ConnectionMapping<string>();
+        public readonly static ConnectionMapping<User> _connections =
+            new ConnectionMapping<User>();
+        private readonly IExecutor executor;
+        private readonly IViewStorage viewStorage;
 
-        private readonly IEntityStorage<ChatEntity> chats;
-
-        public ChatHub(IEntityStorage<ChatEntity> chats)
+        public ChatHub(IExecutor executor, IViewStorage viewStorage)
         {
-            this.chats = chats;
-        }
-        [Authorize]
-        public IEnumerable<string> GetCurrentUserConnections() {
-            var userName = Context.User?.Identity?.Name;
-            return _connections.GetConnections(userName);
-        }
-
-        private Excecutor GetExecutor() {
-            var eventBus = new SimpleEventBus();
-            eventBus.Subscribe(new ChatHubEventHandler(this));
-            return new Excecutor(chats, this, eventBus);
+            this.executor = executor;
+            this.viewStorage = viewStorage;
         }
 
         [Authorize]
         public async Task ExecCommand(Envelope e)
         {
             var cmd = e.Get<Command>();
-            await cmd.Accept(GetExecutor());
+            await cmd.Accept(executor, this);
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)
         {
             var q = e.Get<Query>();
-            var res = await q.Accept(GetExecutor());
-            var user = GetCurrentUser();
+            var res = await q.Accept(viewStorage);
+            var user = ((IContext)this).GetCurrentUser();
             if (res is AllChatsView acq) {
                 foreach (var chat in acq.Chats)
                 {
                     if (chat.Subscribers.Any(x => x.Id == user.Id)) {
-                        foreach (var connId in _connections.GetConnections(user.Id.ToString())) {
+                        foreach (var connId in _connections.GetConnections(user)) {
                             await Groups.AddToGroupAsync(connId, chat.Id.ToString());
                         }
                     }
@@ -69,7 +55,7 @@ namespace LlmBackend.Hubs
             
             if (userName != null)
             {
-                _connections.Add(userName, Context.ConnectionId);
+                _connections.Add(((IContext)this).GetCurrentUser(), Context.ConnectionId);
             }
 
             await base.OnConnectedAsync();
@@ -81,12 +67,11 @@ namespace LlmBackend.Hubs
 
             if (userName != null)
             {
-                _connections.Remove(userName, Context.ConnectionId);
+                _connections.Remove(((IContext)this).GetCurrentUser(), Context.ConnectionId);
             }
             return base.OnDisconnectedAsync(exception);
         }
-        [Authorize]
-        public User GetCurrentUser()
+        User IContext.GetCurrentUser()
         {
             var name = Context.User?.Identity?.Name?? String.Empty;
             return new User(Ids.Parse(name), name);

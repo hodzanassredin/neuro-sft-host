@@ -6,9 +6,10 @@ using LlmCommon.Views;
 
 namespace LlmCommon.Implementations
 {
-    public class Excecutor(IEntityStorage<ChatEntity> chats, IContext ctx, IEventBus eventBus) : IExecutor, IViewStorage
+    public class Executor(IEntityStorage<ChatEntity> chats, IEventBus eventBus) : IExecutor, IViewStorage
     {
-        public async Task Visit(LeaveCommand cmd)
+        public Ids.Id LastAddedMessageId { get; private set; }
+        public async Task Visit(LeaveCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
@@ -17,7 +18,7 @@ namespace LlmCommon.Implementations
             await eventBus.PublishEventsFrom(chat);
         }
 
-        public async Task Visit(JoinCommand cmd)
+        public async Task Visit(JoinCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
@@ -26,7 +27,7 @@ namespace LlmCommon.Implementations
             await eventBus.PublishEventsFrom(chat);
         }
 
-        public async Task Visit(ChangeMessageCommand cmd)
+        public async Task Visit(ChangeMessageCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
@@ -35,16 +36,17 @@ namespace LlmCommon.Implementations
             await eventBus.PublishEventsFrom(chat);
         }
 
-        public async Task Visit(AddMessageCommand cmd)
+        public async Task Visit(AddMessageCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
-            chat.AddMessage(cmd.Text, user);
+            var id = chat.AddMessage(cmd.Text, user);
             await chats.Upsert(chat);
             await eventBus.PublishEventsFrom(chat);
+            LastAddedMessageId = id;
         }
 
-        public async Task Visit(RemoveMessageCommand cmd)
+        public async Task Visit(RemoveMessageCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
@@ -53,7 +55,7 @@ namespace LlmCommon.Implementations
             await eventBus.PublishEventsFrom(chat);
         }
 
-        public async Task Visit(RemoveChatCommand cmd)
+        public async Task Visit(RemoveChatCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
@@ -65,7 +67,7 @@ namespace LlmCommon.Implementations
             await eventBus.PublishEventsFrom(chat);
         }
 
-        public async Task Visit(AddChatCommand cmd)
+        public async Task Visit(AddChatCommand cmd, IContext ctx)
         {
             var user = ctx.GetCurrentUser();
             var chat = new ChatEntity(cmd.Name, user);
@@ -81,7 +83,7 @@ namespace LlmCommon.Implementations
             };
         }
 
-        public async Task Visit(ChangeChatCommand cmd)
+        public async Task Visit(ChangeChatCommand cmd, IContext ctx)
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();

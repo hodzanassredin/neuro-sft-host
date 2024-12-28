@@ -10,6 +10,6 @@ namespace LlmCommon
     {
         public Ids.Id Id { get; set; } = Ids.dir.GenerateId();
 
-        public abstract Task Accept(IExecutor visitor);
+        public abstract Task Accept(IExecutor visitor, IContext ctx);
     }
 }
