@@ -522,7 +522,7 @@ a.add img {
     border-top: 1px solid #ccc;
 }
 
-    .send-box form {
+    .send-box div {
         display: flex;
         align-items: center;
         justify-content: space-between;

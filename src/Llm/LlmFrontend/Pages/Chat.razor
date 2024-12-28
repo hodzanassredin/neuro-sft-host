@@ -152,11 +152,12 @@
 
 
                                     <div class="send-box">
-                                        <form action="">
-                                            <input @bind="messageInput" type="text" class="form-control" aria-label="message…" placeholder="Write message … you can @@mention an agent">
+                                        <div>
+                                            <input 
+                                                    @bind="messageInput" @onkeyup="MessageKeyDown" type="text" class="form-control" aria-label="message…" placeholder="Write message … you can @@mention an agent">
 
                                             <button disabled="@(!handler.IsConnected)" @onclick="Send" type="button"><i class="fa fa-paper-plane" aria-hidden="true"></i> Send</button>
-                                        </form>
+                                        </div>
 
                                         <div class="send-btns">
                                             <div class="attach">
@@ -236,7 +237,14 @@
             
         }
     }
-
+    private Task MessageKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            return Send();
+        }
+        return Task.CompletedTask;
+    }
 
     public void ChatClicked(ChatDto chat)
     {
