@@ -39,7 +39,7 @@
     protected override async Task OnInitializedAsync()
     {
         await hubConnection.StartAsync();
-
+        
         await state.LoadAsync();
     }
 }

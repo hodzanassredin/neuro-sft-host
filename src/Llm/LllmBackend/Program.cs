@@ -24,7 +24,7 @@ namespace LlmBackend
             var builder = WebApplication.CreateBuilder(args);
             var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
             var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
-            var llm = builder.Configuration["LlmEndpoint"] ?? "https://localhost:9001";
+            var llm = builder.Configuration["LlmEndpoint"] ?? "http://localhost:9001/v1";
             builder.Services.AddCors(
                 options => options.AddPolicy(
                     "wasm",
@@ -82,7 +82,7 @@ namespace LlmBackend
 
 
             builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
-            builder.Services.AddScoped<GenerationsManager>();
+            builder.Services.AddScoped<AiManager>();
 
             builder.Services.AddSingleton<ChatHubEventHandler>();
             builder.Services.AddSingleton<IExecutor, Executor>();
@@ -113,13 +113,13 @@ namespace LlmBackend
             //});
 
             builder.Services.AddChatClient(b => 
-                new OpenAIClient(new ApiKeyCredential(""), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
+                new OpenAIClient(new ApiKeyCredential("asd"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
                     .AsChatClient("/models/toxic_sft_cotype/merged")
                     .AsBuilder()
                             .UseLogging()
-                            .UseFunctionInvocation()
-                            .UseDistributedCache()
-                            .UseOpenTelemetry()
+                            //.UseFunctionInvocation()
+                            //.UseDistributedCache()
+                            //.UseOpenTelemetry()
                             .Build(b));
 
 

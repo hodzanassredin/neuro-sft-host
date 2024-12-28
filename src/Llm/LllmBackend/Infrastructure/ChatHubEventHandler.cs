@@ -60,7 +60,7 @@ namespace LlmBackend.Infrastructure
         }
         public IEnumerable<string> GetUserConnections(User user)
         {
-            return ChatHub._connections.GetConnections(user);
+            return ChatHub._connections.GetConnections(user.Id);
         }
         private async Task AddUserToGroup(Ids.Id chatId, User user)
         {

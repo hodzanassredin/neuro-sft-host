@@ -31,7 +31,7 @@ namespace LlmCommon.Implementations
         {
             var chat = await chats.Load(cmd.ChatId);
             var user = ctx.GetCurrentUser();
-            chat.ChangeMessage(user, cmd.MessageId, cmd.Text);
+            chat.ChangeMessage(user, cmd.MessageId, cmd.Text, cmd.Append);
             await chats.Upsert(chat);
             await eventBus.PublishEventsFrom(chat);
         }

@@ -12,7 +12,13 @@ namespace LlmCommon.Views
         {
             var chat = Chats.Single(x => x.Id == ev.ChatId);
             var msg = chat.Messages.Single(x => x.Id == ev.MessageId);
-            msg.Text = ev.Text;
+            if (ev.Append)
+            {
+                msg.Text += ev.Text;
+            }
+            else {
+                msg.Text = ev.Text;
+            }
             return Task.FromResult(true);
         }
 

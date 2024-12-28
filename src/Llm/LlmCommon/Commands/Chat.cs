@@ -49,11 +49,13 @@ namespace LlmCommon.Commands.Chat
             return visitor.Visit(this, ctx);
         }
     }
-    public class ChangeMessageCommand(Ids.Id chatId, Ids.Id messageId, string text) : Command
+    public class ChangeMessageCommand(Ids.Id chatId, Ids.Id messageId, string text, bool append) : Command
     {
         public Ids.Id ChatId { get; } = chatId;
         public Ids.Id MessageId { get; } = messageId;
         public string Text { get; } = text;
+        public bool Append { get; } = append;
+
         public override Task Accept(IExecutor visitor, IContext ctx)
         {
             return visitor.Visit(this, ctx);

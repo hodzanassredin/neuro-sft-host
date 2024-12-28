@@ -1,6 +1,8 @@
 ﻿using LlmCommon;
 using LlmCommon.Abstractions;
+using LlmCommon.Commands.Chat;
 using LlmCommon.Dtos;
+using LlmCommon.Implementations;
 using LlmCommon.Transport;
 using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
@@ -14,15 +16,17 @@ namespace LlmBackend.Hubs
     }
     public class ChatHub : Hub<IFrontendChatClient>, IContext
     {
-        public readonly static ConnectionMapping<User> _connections =
-            new ConnectionMapping<User>();
+        public readonly static ConnectionMapping<Ids.Id> _connections =
+            new ConnectionMapping<Ids.Id>();
         private readonly IExecutor executor;
         private readonly IViewStorage viewStorage;
+        private readonly AiManager aiManager;
 
-        public ChatHub(IExecutor executor, IViewStorage viewStorage)
+        public ChatHub(IExecutor executor, IViewStorage viewStorage, AiManager aiManager)
         {
             this.executor = executor;
             this.viewStorage = viewStorage;
+            this.aiManager = aiManager;
         }
 
         [Authorize]
@@ -30,6 +34,9 @@ namespace LlmBackend.Hubs
         {
             var cmd = e.Get<Command>();
             await cmd.Accept(executor, this);
+            if (cmd is AddMessageCommand amc) {
+                await aiManager.StartGeneration(amc.ChatId);
+            }
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)
@@ -41,7 +48,7 @@ namespace LlmBackend.Hubs
                 foreach (var chat in acq.Chats)
                 {
                     if (chat.Subscribers.Any(x => x.Id == user.Id)) {
-                        foreach (var connId in _connections.GetConnections(user)) {
+                        foreach (var connId in _connections.GetConnections(user.Id)) {
                             await Groups.AddToGroupAsync(connId, chat.Id.ToString());
                         }
                     }
@@ -55,7 +62,7 @@ namespace LlmBackend.Hubs
             
             if (userName != null)
             {
-                _connections.Add(((IContext)this).GetCurrentUser(), Context.ConnectionId);
+                _connections.Add(((IContext)this).GetCurrentUser().Id, Context.ConnectionId);
             }
 
             await base.OnConnectedAsync();
@@ -67,7 +74,7 @@ namespace LlmBackend.Hubs
 
             if (userName != null)
             {
-                _connections.Remove(((IContext)this).GetCurrentUser(), Context.ConnectionId);
+                _connections.Remove(((IContext)this).GetCurrentUser().Id, Context.ConnectionId);
             }
             return base.OnDisconnectedAsync(exception);
         }

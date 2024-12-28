@@ -1,6 +1,5 @@
 ﻿using LlmCommon;
 using LlmCommon.Abstractions;
-using static LlmCommon.Ids;
 
 namespace LlmBackend.Infrastructure
 {

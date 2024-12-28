@@ -6,38 +6,38 @@ using Microsoft.Extensions.AI;
 
 namespace LlmCommon.Implementations
 {
-    public class GenerationsManager : IContext
+    public class AiManager : IContext
     {
         private readonly IEntityStorage<ChatEntity> chats;
         private readonly IChatClient client;
         private readonly IEventBus eventBus;
-        private readonly IExecutor handler;
-        private readonly Executor executor;
-        private User aiUser = new User(Ids.Parse("AI"), "AI");
+        private readonly IExecutor executor;
+        public readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
 
         private const string model = "/models/toxic_sft_cotype/merged";
 
         //private ConcurrentDictionary<Ids.Id, CancellationTokenSource> inFly = new();
-        public GenerationsManager(IEntityStorage<ChatEntity> chats, IChatClient client, IEventBus eventBus, IExecutor handler)
+        public AiManager(IEntityStorage<ChatEntity> chats, IChatClient client, IEventBus eventBus, IExecutor executor)
         {
             this.chats = chats;
             this.client = client;
             this.eventBus = eventBus;
-            this.handler = handler;
-            this.executor = new Executor(chats, eventBus);
+            this.executor = executor;
         }
 
         public async Task StartGeneration(Ids.Id chatId, string? system = null)
         {
             var msgs = await MapMsgs(chatId, system);
             var opts = GetOps();
-            await new AddMessageCommand(chatId, "Thinking...").Accept(executor, this);
+            await new AddMessageCommand(chatId, "").Accept(executor, this);
             var msgId = executor.LastAddedMessageId;//todo remove that crap
             //var resp = client.CompleteAsync(msgs, opts, cts.Token);
             var stream = client.CompleteStreamingAsync(msgs, opts);
+
+            
             await foreach (var item in stream)
             {
-                await new ChangeMessageCommand(chatId, msgId, item.Text??"").Accept(executor,this);
+                await new ChangeMessageCommand(chatId, msgId, item.Text??"", true).Accept(executor,this);
             }
         }
 

@@ -45,7 +45,12 @@ namespace LlmCommon.Entities
                     Debug.Assert(changedMessageEvent.ChatId == this.Id);
                     Debug.Assert(changedMessageEvent.MessageId != Ids.Empty);
                     var msg = dto.Messages.Single(x => x.Id == changedMessageEvent.MessageId);
-                    msg.Text = changedMessageEvent.Text;
+                    if (changedMessageEvent.Append) {
+                        msg.Text += changedMessageEvent.Text;
+                    }
+                    else { 
+                        msg.Text = changedMessageEvent.Text;
+                    }
                     break;
                 case RemovedChatEvent removedChatEvent:
                     Debug.Assert(removedChatEvent.ChatId == this.Id);
@@ -69,33 +74,33 @@ namespace LlmCommon.Entities
         }
         public Ids.Id AddMessage(string text, User user) {
             var isSubscriber = this.dto.Subscribers.Any(x => x.Id == user.Id);
-            CheckAuth(isSubscriber || user.Id == this.dto.Owner.Id);
+            CheckAuth(user.IsAdmin || isSubscriber || user.Id == this.dto.Owner.Id);
 
             var id = Ids.dir.GenerateId();
             Exec(new CreatedMessageEvent(user, this.Id, id, text));
             return id;
         }
-        public void ChangeMessage(User user, Ids.Id messageId, string text) {
+        public void ChangeMessage(User user, Ids.Id messageId, string text, bool append) {
             var msg = this.dto.Messages.Single(x => x.Id == messageId);
-            CheckAuth(user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
-            Exec(new ChangedMessageEvent(this.Id, messageId, text, user));
+            CheckAuth(user.IsAdmin || user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
+            Exec(new ChangedMessageEvent(this.Id, messageId, text, user, append));
         }
 
         public void ChangeChat(User user, string text)
         {
-            CheckAuth(user.Id == this.dto.Owner.Id);
+            CheckAuth(user.IsAdmin || user.Id == this.dto.Owner.Id);
             Exec(new ChangedChatEvent(this.Id, text, user));
         }
         public void Remove(User user)
         {
-            CheckAuth(user.Id == this.dto.Owner.Id);
+            CheckAuth(user.IsAdmin || user.Id == this.dto.Owner.Id);
             Exec(new RemovedChatEvent(this.Id));
         }
 
         public void RemoveMessage(User user, Ids.Id messageId)
         {
             var msg = this.dto.Messages.Single(x=>x.Id == messageId);
-            CheckAuth(user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
+            CheckAuth(user.IsAdmin || user.Id == this.dto.Owner.Id || msg.User.Id == user.Id);
             Exec(new RemovedMessageEvent(this.Id, messageId));
         }
 
