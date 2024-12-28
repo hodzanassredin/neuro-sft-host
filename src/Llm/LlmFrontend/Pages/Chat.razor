@@ -15,6 +15,8 @@
 @implements IEventHandler
 @implements IDisposable
 @inject IRequestHandler handler
+@inject IJSRuntime js
+@implements IAsyncDisposable
 
 <PageTitle>Chat</PageTitle>
 
@@ -118,7 +120,7 @@
                                     </div>
 
 
-                                    <div class="modal-body">
+                                    <div @ref="messagesRef" class="modal-body">
                                         <div class="msg-body">
                                             <ul>
                                                 @if (currentChat != null && currentChat.Messages.Count > 0)
@@ -191,11 +193,26 @@
 </section>
 
 @code{
+    private ElementReference messagesRef;
+
     private string search = String.Empty;
     private string messageInput = String.Empty;
 
     private ChatDto? currentChat = null;
-
+    private IJSObjectReference? module;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await js.InvokeAsync<IJSObjectReference>("import",
+                "/js/Chat.js");
+        }
+        if (module != null && currentChat!=null)
+        {
+            await module.InvokeVoidAsync("scrollToEnd", messagesRef);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
 
     public IEnumerable<ChatDto> GetChats(bool isJoined) {
         var res = state.ChatsView?.Chats ?? Enumerable.Empty<ChatDto>();
@@ -216,6 +233,7 @@
         {
             await handler.Handle(new LlmCommon.Commands.Chat.AddMessageCommand(currentChat.Id, messageInput));
             messageInput = String.Empty;
+            
         }
     }
 
@@ -244,5 +262,19 @@
             StateHasChanged();
         }
         return Task.CompletedTask;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            try
+            {
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
     }
 }
