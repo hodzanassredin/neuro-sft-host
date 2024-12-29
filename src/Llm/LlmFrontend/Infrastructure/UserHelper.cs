@@ -10,7 +10,8 @@ namespace LlmFrontend.Infrastructure
             if (user != null && user.Identity != null && user.Identity.IsAuthenticated)
             {
 
-                var idStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                //var idStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var idStr = user.FindFirst(ClaimTypes.Name)?.Value;
                 var id = idStr == null ? Ids.Empty : Ids.Parse(idStr);
                 return new LlmCommon.Dtos.User(
                     id,

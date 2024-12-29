@@ -3,13 +3,14 @@
 @using System.Globalization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-@{
-    var cl = IsFromCurrent ? "sender" : "repaly";
+@if (Message!=null){
+
+    var cl = isFromCurrent ? "sender" : "repaly";
+    <li class="@cl">
+        <p>@Message.Text</p>
+        <span class="time">@ConvertDateTimeOffsetToLocalTimeString(Message.CreatedAt)</span>
+    </li>
 }
-<li class="@cl">
-    <p>@Message.Text</p>
-    <span class="time">@ConvertDateTimeOffsetToLocalTimeString(Message.CreatedAt)</span>
-</li>
 
 @code {
 
@@ -26,13 +27,21 @@
     }
 
 
-    private bool IsFromCurrent => Message != null && currentUser.Id == Message.User.Id;
+    private bool isFromCurrent;
     private User currentUser = User.Empty;
     protected override async Task OnInitializedAsync()
     {
-        var res = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        currentUser = res.User.ToUser();
+        if (Message != null)
+        {
+            var res = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            currentUser = res.User.ToUser();
+            isFromCurrent = Message != null && currentUser.Id == Message.User.Id;
+        }
         await base.OnInitializedAsync();
+    }
+    protected override Task OnParametersSetAsync()
+    {
+        return base.OnParametersSetAsync();
     }
     [Parameter]
     public MessageDto Message { get; set; } = null!;
