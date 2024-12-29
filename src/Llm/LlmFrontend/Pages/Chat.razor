@@ -135,7 +135,11 @@
                                                             prevDt = msg.CreatedAt.Date;
                                                             <li>
                                                                 <div class="divider">
-                                                                    <h6>@prevDt.ToLocalTime().ToShortDateString()</h6>
+                                                                    @if (prevDt == DateTime.Now.Date){
+                                                                        <h6>Today</h6>
+                                                                    } else{
+                                                                        <h6>@prevDt.ToLocalTime().ToShortDateString()</h6>
+                                                                    }
                                                                 </div>
                                                             </li>
                                                         }
