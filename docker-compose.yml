@@ -5,7 +5,7 @@ secrets:
     file: postgres_password.txt
 
 services:
-  postgresql:
+  db:
       secrets:
         - postgres-password
       image: pgvector/pgvector:pg16 #postgis/postgis:latest
@@ -73,7 +73,7 @@ services:
      secrets:
        - db_password
      depends_on:
-       - postgresql
+       - db
      image: ghcr.io/hodzanassredin/hltr_back:latest
      volumes:
        - ./cert:/cert
@@ -100,7 +100,6 @@ services:
       - frontend
       - backend
     depends_on:
-      - bookstack
       - frontend
       - backend
     restart: always
@@ -110,3 +109,41 @@ services:
       CLIENT_MAX_BODY_SIZE: 500M
       WEBSOCKET: 'true'
       #STAGE: 'production'
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - vllm
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+      - vllm
+      - db
+      - nginx
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  telegraf:
+    build:
+      context: .
+      dockerfile: telegraf/Dockerfile
+    ports:
+      - "9273:9273"
+    depends_on:
+      - prometheus

@@ -1,4 +1,5 @@
-﻿using LlmCommon;
+﻿using LlmBackend.Infrastructure;
+using LlmCommon;
 using LlmCommon.Abstractions;
 using LlmCommon.Commands.Chat;
 using LlmCommon.Dtos;
@@ -7,6 +8,7 @@ using LlmCommon.Transport;
 using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Diagnostics;
 
 namespace LlmBackend.Hubs
 {
@@ -33,10 +35,15 @@ namespace LlmBackend.Hubs
         public async Task ExecCommand(Envelope e)
         {
             var cmd = e.Get<Command>();
+
+            var sw = Stopwatch.StartNew();
+
+            
             await cmd.Accept(executor, this);
             if (cmd is AddMessageCommand amc) {
                 await aiManager.StartGeneration(amc.ChatId);
             }
+
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)

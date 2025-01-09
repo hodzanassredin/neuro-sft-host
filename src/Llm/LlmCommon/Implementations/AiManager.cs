@@ -3,6 +3,7 @@ using LlmCommon.Commands.Chat;
 using LlmCommon.Dtos;
 using LlmCommon.Entities;
 using Microsoft.Extensions.AI;
+using System.Diagnostics;
 
 namespace LlmCommon.Implementations
 {
@@ -12,21 +13,26 @@ namespace LlmCommon.Implementations
         private readonly IChatClient client;
         private readonly IEventBus eventBus;
         private readonly IExecutor executor;
+        private readonly IMetrics metrics;
         public readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
 
         private const string model = "/models/toxic_sft_cotype/merged";
 
         //private ConcurrentDictionary<Ids.Id, CancellationTokenSource> inFly = new();
-        public AiManager(IEntityStorage<ChatEntity> chats, IChatClient client, IEventBus eventBus, IExecutor executor)
+        public AiManager(IEntityStorage<ChatEntity> chats, IChatClient client, IEventBus eventBus, IExecutor executor, IMetrics metrics)
         {
             this.chats = chats;
             this.client = client;
             this.eventBus = eventBus;
             this.executor = executor;
+            this.metrics = metrics;
         }
 
         public async Task StartGeneration(Ids.Id chatId, string? system = null)
         {
+            metrics.IncLlmRequestCount();
+            var sw = Stopwatch.StartNew();
+
             var msgs = await MapMsgs(chatId, system);
             var opts = GetOps();
             await new AddMessageCommand(chatId, "").Accept(executor, this);
@@ -34,11 +40,24 @@ namespace LlmCommon.Implementations
             //var resp = client.CompleteAsync(msgs, opts, cts.Token);
             var stream = client.CompleteStreamingAsync(msgs, opts);
 
+            TimeSpan prevTokenTime = TimeSpan.MaxValue;
             
             await foreach (var item in stream)
             {
+                if (prevTokenTime == TimeSpan.MaxValue)
+                {
+                    prevTokenTime = sw.Elapsed;
+                    metrics.SetTimeToFirstToken(prevTokenTime);
+                }
+                else {
+                    metrics.SetTimeToInterTokenDelay(sw.Elapsed - prevTokenTime);
+                    prevTokenTime = sw.Elapsed;
+                    
+                }
                 await new ChangeMessageCommand(chatId, msgId, item.Text??"", true).Accept(executor,this);
             }
+
+            metrics.SetTimeToWholeRequest(sw.Elapsed);
         }
 
         private async Task<List<ChatMessage>> MapMsgs(Ids.Id chatId, string? system)

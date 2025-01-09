@@ -11,17 +11,30 @@ using Microsoft.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.Extensions.AI;
 using OpenAI;
-using NuGet.Configuration;
+
 using System.ClientModel;
+
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
+using System.Diagnostics.Metrics;
 
 namespace LlmBackend
 {
     public class Program
     {
+
         
+        private const string ModelId = "/models/toxic_sft_cotype/merged";
+
         public static async Task Main(string[] args)
         {
+            
+
+
             var builder = WebApplication.CreateBuilder(args);
+
+
             var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
             var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
             var llm = builder.Configuration["LlmEndpoint"] ?? "http://localhost:9001/v1";
@@ -87,17 +100,12 @@ namespace LlmBackend
             builder.Services.AddSingleton<ChatHubEventHandler>();
             builder.Services.AddSingleton<IExecutor, Executor>();
             builder.Services.AddSingleton<IViewStorage, Executor>();
-            
-
-
-
-
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            
+            builder.Services.AddSingleton<IMetrics, MetricsHost>();
 
             builder.Services.AddResponseCompression(opts =>
             {
@@ -111,18 +119,45 @@ namespace LlmBackend
             //               .AddMemoryGrainStorage("PubSubStore")
             //               .AddMemoryStreams(Constants.ChatsStreamStorage);
             //});
+            var sourceName = Guid.NewGuid().ToString();
+
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(resource => resource
+                    .AddService(serviceName: builder.Environment.ApplicationName))
+                .WithTracing(builder => {
+                    builder.AddSource(sourceName)
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddSqlClientInstrumentation()
+                        .AddConsoleExporter();
+                })
+                .WithMetrics(builder =>
+                {
+                    builder
+                        .AddMeter(MetricsHost.Name)
+                        //.AddRuntimeInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation()
+                        .AddSqlClientInstrumentation()
+                        .AddPrometheusExporter();
+                });
 
             builder.Services.AddChatClient(b => 
                 new OpenAIClient(new ApiKeyCredential("asd"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
-                    .AsChatClient("/models/toxic_sft_cotype/merged")
+                    .AsChatClient(ModelId)
                     .AsBuilder()
                             .UseLogging()
                             //.UseFunctionInvocation()
                             //.UseDistributedCache()
-                            //.UseOpenTelemetry()
+                            .UseOpenTelemetry(null, sourceName, c => c.EnableSensitiveData = true)
                             .Build(b));
 
+            //builder.Services.UseHttpClientMetrics();
+            builder.Services.AddHealthChecks()
+                .AddCheck<HealthCheck>(nameof(HealthCheck));
+            //.ForwardToPrometheus();
 
+            
             var app = builder.Build();
 
 
@@ -135,13 +170,13 @@ namespace LlmBackend
             }
 
             app.UseHttpsRedirection();
-            
+
             //app.UseAuthentication();
             //app.UseAuthorization();
 
 
-            
 
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
             // provide an end point to clear the cookie for logout
             app.MapPost("/Logout", async (ClaimsPrincipal user, SignInManager<AppUser> signInManager) =>
             {
@@ -153,9 +188,18 @@ namespace LlmBackend
             app.MapIdentityApi<AppUser>();
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
-            
-            
+            //app.UseHttpMetrics(options =>
+            //{
+            //    // This will preserve only the first digit of the status code.
+            //    // For example: 200, 201, 203 -> 2xx
+            //    options.ReduceStatusCodeCardinality();
+            //    options.AddCustomLabel("host", context => context.Request.Host.Host);
 
+            //});
+
+
+            //app.MapMetrics();
+                //.RequireAuthorization("ReadMetrics");
             using (var scope = app.Services.CreateScope())
             {
                 await Auth.SeedData.InitializeAsync(scope.ServiceProvider);
