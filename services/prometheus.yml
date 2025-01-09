@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'backend'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['backend:8000']
+
+  - job_name: 'vllm'
+    metrics_path: /metrics
+    # If vllm server doesn't expose /metrics, skip this or use a sidecar or Telegraf for vllm metrics.
+    # If we rely solely on Telegraf for system metrics, no direct metrics_path needed for vllm.
+    # For demonstration, let's skip vllm metrics at source.
+    static_configs:
+      - targets: [] # empty if no direct metrics on vllm
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['db:5432']
+
+  - job_name: 'nginx'
+    # Nginx doesn't expose Prometheus metrics by default, can use an exporter or skip
+    static_configs:
+      - targets: []
+
+  # Telegraf metrics
+  - job_name: 'telegraf'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['telegraf:9273']

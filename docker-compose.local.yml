@@ -1,8 +1,6 @@
 services:
-    llm-dev-postgresql:
+    db:
         image: pgvector/pgvector:pg16 #postgis/postgis:latest
-        hostname: llmpg
-        container_name: llmpg
         ports:
           - "5434:5432"
         environment:

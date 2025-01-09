@@ -6,50 +6,50 @@ secrets:
 
 services:
   db:
-      secrets:
-        - postgres-password
-      image: pgvector/pgvector:pg16 #postgis/postgis:latest
-      hostname: postgresql
-      container_name: postgresql
-      ports:
-          - "5433:5432"
-      environment:
-          POSTGRES_USER: postgresql
-          POSTGRES_DB_PASSWORD_FILE: /run/secrets/postgres-password
-      volumes:
-          - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
-          - ./data/postgresql:/var/lib/postgresql/data
-      healthcheck:
-          test: ["CMD-SHELL", "pg_isready -U postgresql"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
-      logging:
-        options:
-          max-size: "10m"
-          max-file: "3"
-
-  inference_server:
-    image: nvcr.io/nvidia/tensorrtserver:19.05-py3
-    runtime: nvidia
-    volumes:
-      - ./models:/models
+    secrets:
+      - postgres-password
+    image: pgvector/pgvector:pg16 #postgis/postgis:latest
+    hostname: db
+    container_name: db
     ports:
-      - 8000:8000
-      - 8002:8002
-    command: ["trtserver", "--model-store=/models"]
-    shm_size: 1g
-    ulimits:
-      memlock: -1
-      stack: 67108864
-    deploy:
-      resources:
-        reservations:
-          memory: 16GB
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+        - "5433:5432"
+    environment:
+        POSTGRES_USER: postgresql
+        POSTGRES_DB_PASSWORD_FILE: /run/secrets/postgres-password
+    volumes:
+        - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+        - ./data/postgresql:/var/lib/postgresql/data
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgresql"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # inference_server:
+  #   image: nvcr.io/nvidia/tensorrtserver:19.05-py3
+  #   runtime: nvidia
+  #   volumes:
+  #     - ./models:/models
+  #   ports:
+  #     - 8000:8000
+  #     - 8002:8002
+  #   command: ["trtserver", "--model-store=/models"]
+  #   shm_size: 1g
+  #   ulimits:
+  #     memlock: -1
+  #     stack: 67108864
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         memory: 16GB
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
 
   frontend:
      depends_on:
@@ -80,7 +80,7 @@ services:
        - ./data/backend:/data/fs:Z
      restart: always
      environment:
-        - ConnectionStrings__AppDbContext=Host=postgresql;Port=5432;Database=ident;Username=postgresql;Password=cjm;Trust Server Certificate=true
+        - ConnectionStrings__AppDbContext=Host=db;Port=5432;Database=ident;Username=postgresql;Password=cjm;Trust Server Certificate=true
         - FrontendUrl=https://${DOMAIN}
         - BackendUrl=https://api.${DOMAIN}
         - Options__RootFsPath=/data/fs
@@ -90,6 +90,22 @@ services:
        options:
          max-size: "10m"
          max-file: "3"
+
+  vllm-server:
+    volumes:
+        - ./models:/models
+    ports:
+        - 9001:8000
+    #ipc: host
+    image: vllm/vllm-openai:latest
+    command: --model /models/toxic_sft_cotype/merged
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']
+              capabilities: [gpu]
 
   https-portal:
     image: steveltn/https-portal:1
@@ -112,8 +128,8 @@ services:
 
   nginx:
     build:
-      context: .
-      dockerfile: nginx/Dockerfile
+      context: services/nginx
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     depends_on:
@@ -123,12 +139,12 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./services/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     depends_on:
       - backend
-      - vllm
+      - vllm-server
       - db
       - nginx
 
@@ -141,8 +157,8 @@ services:
 
   telegraf:
     build:
-      context: .
-      dockerfile: telegraf/Dockerfile
+      context: services/telegraf/
+      dockerfile: Dockerfile
     ports:
       - "9273:9273"
     depends_on:
