@@ -17,7 +17,7 @@ using System.ClientModel;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
-using System.Diagnostics.Metrics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LlmBackend
 {
@@ -81,7 +81,7 @@ namespace LlmBackend
 
             // configure authorization
             builder.Services.AddAuthorizationBuilder();
-            builder.Services.AddSingleton<IEntityStorage<ChatEntity>, InMemoryEntityStorage<ChatEntity>>();
+            
 
             // add the database (in memory for the sample)
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("AppDbContext")));
@@ -95,11 +95,14 @@ namespace LlmBackend
 
 
             builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
-            builder.Services.AddScoped<AiManager>();
+
 
             builder.Services.AddSingleton<ChatHubEventHandler>();
-            builder.Services.AddSingleton<IExecutor, Executor>();
-            builder.Services.AddSingleton<IViewStorage, Executor>();
+            builder.Services.AddScoped<IExecutor, Executor>();
+            builder.Services.AddScoped<ViewStorage, DbViewsStorage>();
+            builder.Services.AddScoped<IUnitOfWork>(c => c.GetRequiredService<AppDbContext>());
+            builder.Services.AddScoped<AiManager>();
+            builder.Services.AddScoped<IEntityStorage>(sp => new BroadcastStorage(new DbEntityStorage(sp.GetRequiredService<AppDbContext>()), sp.GetRequiredService<IEventBus>()));
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -120,6 +123,12 @@ namespace LlmBackend
             //               .AddMemoryStreams(Constants.ChatsStreamStorage);
             //});
             var sourceName = Guid.NewGuid().ToString();
+
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Cache");
+                options.InstanceName = "main";
+            });
 
             builder.Services.AddOpenTelemetry()
                 .ConfigureResource(resource => resource
@@ -143,12 +152,12 @@ namespace LlmBackend
                 });
 
             builder.Services.AddChatClient(b => 
-                new OpenAIClient(new ApiKeyCredential("asd"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
+                new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
                     .AsChatClient(ModelId)
                     .AsBuilder()
                             .UseLogging()
-                            //.UseFunctionInvocation()
-                            //.UseDistributedCache()
+                            .UseFunctionInvocation()
+                            .UseDistributedCache()
                             .UseOpenTelemetry(null, sourceName, c => c.EnableSensitiveData = true)
                             .Build(b));
 

@@ -1,4 +1,9 @@
 services:
+    cache:
+      image: "redis:alpine"
+      command: redis-server
+      ports:
+        - "6379:6379"
     db:
         image: pgvector/pgvector:pg16 #postgis/postgis:latest
         ports:

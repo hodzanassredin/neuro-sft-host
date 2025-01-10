@@ -1,9 +1,6 @@
-﻿using LlmBackend.Infrastructure;
-using LlmCommon;
+﻿using LlmCommon;
 using LlmCommon.Abstractions;
-using LlmCommon.Commands.Chat;
 using LlmCommon.Dtos;
-using LlmCommon.Implementations;
 using LlmCommon.Transport;
 using LlmCommon.Views;
 using Microsoft.AspNetCore.Authorization;
@@ -21,14 +18,14 @@ namespace LlmBackend.Hubs
         public readonly static ConnectionMapping<Ids.Id> _connections =
             new ConnectionMapping<Ids.Id>();
         private readonly IExecutor executor;
-        private readonly IViewStorage viewStorage;
-        private readonly AiManager aiManager;
+        private readonly ViewStorage viewStorage;
+        private readonly IUnitOfWork unitOfWork;
 
-        public ChatHub(IExecutor executor, IViewStorage viewStorage, AiManager aiManager)
+        public ChatHub(IExecutor executor, ViewStorage viewStorage, IUnitOfWork unitOfWork)
         {
             this.executor = executor;
             this.viewStorage = viewStorage;
-            this.aiManager = aiManager;
+            this.unitOfWork = unitOfWork;
         }
 
         [Authorize]
@@ -37,13 +34,8 @@ namespace LlmBackend.Hubs
             var cmd = e.Get<Command>();
 
             var sw = Stopwatch.StartNew();
-
-            
             await cmd.Accept(executor, this);
-            if (cmd is AddMessageCommand amc) {
-                await aiManager.StartGeneration(amc.ChatId);
-            }
-
+            await unitOfWork.SaveChangesAsync();
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)
@@ -51,14 +43,9 @@ namespace LlmBackend.Hubs
             var q = e.Get<Query>();
             var res = await q.Accept(viewStorage);
             var user = ((IContext)this).GetCurrentUser();
-            if (res is AllChatsView acq) {
-                foreach (var chat in acq.Chats)
-                {
-                    if (chat.Subscribers.Any(x => x.Id == user.Id)) {
-                        foreach (var connId in _connections.GetConnections(user.Id)) {
-                            await Groups.AddToGroupAsync(connId, chat.Id.ToString());
-                        }
-                    }
+            if (res is ChatView acq) {
+                foreach (var connId in _connections.GetConnections(user.Id)) {
+                    await Groups.AddToGroupAsync(connId, acq.Chat.Id.ToString());
                 }
             }
             return new Envelope(e.CorellationId, res);

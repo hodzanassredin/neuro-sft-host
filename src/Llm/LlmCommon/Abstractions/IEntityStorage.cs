@@ -1,11 +1,11 @@
 ﻿
+
 namespace LlmCommon.Abstractions
 {
-    public interface IEntityStorage<T> where T : Entity
+    public interface IEntityStorage
     {
-        Task<IEnumerable<T>> GetAll();//todo paging
-        Task<T> Load(Ids.Id id);
-        Task Upsert(T entity);
-        Task Remove(Ids.Id id);
+        Task<T?> Load<T>(Ids.Id id) where T : Entity;
+        Task Upsert(Entity entity);
+        Task Remove(Entity entity);
     }
 }

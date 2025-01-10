@@ -1,0 +1,78 @@
+﻿using LlmCommon.Abstractions;
+using LlmCommon.Dtos;
+using LlmCommon.Events;
+using System.Diagnostics;
+
+namespace LlmCommon.Views
+{
+    public class ChatView : View, IChatsEventHandler
+    {
+        public ChatDto Chat { get; set; }
+
+        public Task<bool> Visit(ChangedMessageEvent ev)
+        {
+            var msg = Chat.Messages.Single(x => x.Id == ev.MessageId);
+            if (ev.Append)
+            {
+                msg.Text += ev.Text;
+            }
+            else {
+                msg.Text = ev.Text;
+            }
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> Visit(CreatedMessageEvent ev)
+        {
+            Debug.Assert(Chat?.Id == ev.ChatId);
+            Chat.Messages.Add(new MessageDto
+            {
+                Id = ev.MessageId,
+                Text = ev.Text,
+                User = ev.Writer
+            });
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> Visit(RemovedMessageEvent ev)
+        {
+            Debug.Assert(Chat?.Id == ev.ChatId);
+            var msg = Chat.Messages.Single(x => x.Id == ev.MessageId);
+
+            Chat.Messages.Remove(msg);
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> Visit(UserJoinEvent ev)
+        {
+            Debug.Assert(Chat?.Id == ev.ChatId);
+            Chat.Subscribers.Add(ev.User);
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> Visit(UserLeaveEvent ev)
+        {
+            Debug.Assert(Chat?.Id == ev.ChatId);
+            var exUser = Chat.Subscribers.Single(x=>x.Id == ev.User.Id);
+            Chat.Subscribers.Remove(exUser);
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> Visit(ChangedChatEvent ev)
+        {
+            Debug.Assert(Chat?.Id == ev.ChatId);
+            Chat.Name = ev.Name;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> Visit(CreatedChatEvent createdChatEvent)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> Visit(RemovedChatEvent removedChatEvent)
+        {
+            return Task.FromResult(false);
+        }
+    }
+}

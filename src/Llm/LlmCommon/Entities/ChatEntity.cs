@@ -91,7 +91,7 @@ namespace LlmCommon.Entities
             CheckAuth(user.IsAdmin || user.Id == this.dto.Owner.Id);
             Exec(new ChangedChatEvent(this.Id, text, user));
         }
-        public void Remove(User user)
+        public override void Remove(User user)
         {
             CheckAuth(user.IsAdmin || user.Id == this.dto.Owner.Id);
             Exec(new RemovedChatEvent(this.Id));

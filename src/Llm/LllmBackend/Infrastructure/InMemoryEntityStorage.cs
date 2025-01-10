@@ -3,28 +3,33 @@ using LlmCommon.Abstractions;
 
 namespace LlmBackend.Infrastructure
 {
-    public class InMemoryEntityStorage<T> : IEntityStorage<T> where T : Entity
+    public class InMemoryEntityStorage : IEntityStorage
     {
-        private readonly IList<T> _items = new List<T>();
-
-        public Task<IEnumerable<T>> GetAll()
+        public InMemoryEntityStorage()
         {
-            return Task.FromResult(_items.AsEnumerable());
+        }
+        private static readonly IList<Entity> _items = new List<Entity>();
+
+
+        public Task<T?> Load<T>(Ids.Id id) where T : Entity 
+        {
+            T? res = null;
+            var e = _items.SingleOrDefault(x => x.Id == id);
+            if (e != null)
+            {
+                res = (T)e;
+            }
+            return Task.FromResult(res);
         }
 
-        public Task<T> Load(Ids.Id id)
+        public Task Remove(Entity entity)
         {
-            return Task.FromResult(_items.Single(x=>x.Id == id));
-        }
-
-        public Task Remove(Ids.Id id)
-        {
-            var item = _items.Single(x => x.Id == id);
+            var item = _items.Single(x => x.Id == entity.Id);
             _items.Remove(item);
             return Task.CompletedTask;
         }
 
-        public async Task Upsert(T entity)
+        public async Task Upsert(Entity entity)
         {
             var ex = _items.SingleOrDefault(x => x.Id == entity.Id);
             if (ex!= null)
@@ -33,6 +38,7 @@ namespace LlmBackend.Infrastructure
                 
             }
             _items.Add(entity);
+
         }
     }
 }

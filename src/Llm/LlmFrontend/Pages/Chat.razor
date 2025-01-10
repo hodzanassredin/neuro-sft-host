@@ -158,7 +158,7 @@
                                     <div class="send-box">
                                         <div>
                                             <input 
-                                                    @bind="messageInput" @onkeyup="MessageKeyDown" type="text" class="form-control" aria-label="message…" placeholder="Write message … you can @@mention an agent">
+                                            @bind="messageInput" @onkeyup="MessageKeyDown" type="text" class="form-control" aria-label="message…" placeholder="Write message … you can @@mention an agent">
 
                                             <button disabled="@(!handler.IsConnected)" @onclick="Send" type="button"><i class="fa fa-paper-plane" aria-hidden="true"></i> Send</button>
                                         </div>
@@ -219,10 +219,10 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    public IEnumerable<ChatDto> GetChats(bool isJoined) {
-        var res = state.ChatsView?.Chats ?? Enumerable.Empty<ChatDto>();
+    public IEnumerable<ChatDtoBase> GetChats(bool isJoined) {
+        var res = state.ChatsView?.Chats ?? Enumerable.Empty<ChatDtoBase>();
         if (!String.IsNullOrWhiteSpace(search)) {
-            res = res.Where(x => x.Name.Contains(search) || x.Owner.Name.Contains(search) || x.Messages.Any(x=>x.Text.Contains(search) || x.User.Name.Contains(search)));
+            res = res.Where(x => x.Name.Contains(search) || x.Owner.Name.Contains(search));
         }
         return res;
     }
@@ -238,7 +238,7 @@
         {
             await handler.Handle(new LlmCommon.Commands.Chat.AddMessageCommand(currentChat.Id, messageInput));
             messageInput = String.Empty;
-            
+
         }
     }
     private Task MessageKeyDown(KeyboardEventArgs e)
@@ -250,9 +250,9 @@
         return Task.CompletedTask;
     }
 
-    public void ChatClicked(ChatDto chat)
+    public async Task ChatClicked(ChatDtoBase chat)
     {
-        currentChat = chat;
+        currentChat = await state.GetChat(chat.Id);
     }
 
     protected override void OnInitialized()
@@ -263,8 +263,9 @@
     {
         bus?.UnSubscribe(this);
     }
-    public Task Handle(Event ev)
+    public Task<bool> Handle(Event ev)
     {
+        var changed = false;
         if (ev is AppState.AppStateChangedEvent)
         {
             if (currentChat != null && !state.ChatsView.Chats.Contains(currentChat)) {
@@ -272,8 +273,9 @@
             }
 
             StateHasChanged();
+            changed = true;
         }
-        return Task.CompletedTask;
+        return Task.FromResult(changed);
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

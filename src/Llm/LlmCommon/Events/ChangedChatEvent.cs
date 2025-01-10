@@ -11,7 +11,7 @@ namespace LlmCommon.Events
             Name = name;
             User = user;
         }
-        public Ids.Id ChatId { get; set; }
+       
         public string Name { get; set; }
         public User User { get; set; }
 

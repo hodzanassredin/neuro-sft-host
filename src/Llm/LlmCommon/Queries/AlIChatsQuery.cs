@@ -1,16 +1,17 @@
 ﻿
 
 using LlmCommon.Abstractions;
+using LlmCommon.Views;
 
 namespace LlmCommon.Queries
 {
-    public class AllChatsQuery : Query
+    public class AllChatsQuery : TypedQuery<AllChatsView>
     {
         public static readonly AllChatsQuery Instance = new AllChatsQuery();
 
-        public override Task<View> Accept(IViewStorage visitor)
+        public override async Task<View> Accept(ViewStorage visitor)
         {
-            return visitor.Get(this);
+            return await visitor.Get(this);
         }
     }
 }

@@ -81,11 +81,12 @@ namespace LlmBackend.Infrastructure
             return true;
         }
 
-        public async Task Handle(Event ev)
+        public Task<bool> Handle(Event ev)
         {
             if (ev is ChatEvent cev) { 
-                await cev.Accept(this);
+                return cev.Accept(this);
             }
+            return Task.FromResult(false);
         }
 
         public async Task<bool> Visit(ChangedChatEvent ev)

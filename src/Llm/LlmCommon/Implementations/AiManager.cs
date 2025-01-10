@@ -9,9 +9,8 @@ namespace LlmCommon.Implementations
 {
     public class AiManager : IContext
     {
-        private readonly IEntityStorage<ChatEntity> chats;
+        private readonly IEntityStorage entStorage;
         private readonly IChatClient client;
-        private readonly IEventBus eventBus;
         private readonly IExecutor executor;
         private readonly IMetrics metrics;
         public readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
@@ -19,11 +18,10 @@ namespace LlmCommon.Implementations
         private const string model = "/models/toxic_sft_cotype/merged";
 
         //private ConcurrentDictionary<Ids.Id, CancellationTokenSource> inFly = new();
-        public AiManager(IEntityStorage<ChatEntity> chats, IChatClient client, IEventBus eventBus, IExecutor executor, IMetrics metrics)
+        public AiManager(IEntityStorage entStorage, IChatClient client, IExecutor executor, IMetrics metrics)
         {
-            this.chats = chats;
+            this.entStorage = entStorage;
             this.client = client;
-            this.eventBus = eventBus;
             this.executor = executor;
             this.metrics = metrics;
         }
@@ -62,7 +60,7 @@ namespace LlmCommon.Implementations
 
         private async Task<List<ChatMessage>> MapMsgs(Ids.Id chatId, string? system)
         {
-            var chat = (await chats.Load(chatId)).Dto;
+            var chat = (await entStorage.Load<ChatEntity>(chatId)).Dto;
             var msgs = chat.Messages.Select(x => new ChatMessage()
             {
                 AuthorName = x.User.Name,

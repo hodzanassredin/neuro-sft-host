@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using LlmCommon.Dtos;
+using System.Text.Json.Serialization;
 
 namespace LlmCommon
 {
@@ -35,5 +36,7 @@ namespace LlmCommon
             Version++;
             uncommittedEvents.Add(@event);
         }
+
+        public abstract void Remove(User user);
     }
 }

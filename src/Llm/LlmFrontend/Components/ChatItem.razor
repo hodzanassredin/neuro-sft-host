@@ -64,11 +64,11 @@ class="d-flex align-items-center">
         return handler.Handle(new LlmCommon.Commands.Chat.ChangeChatCommand(Chat.Id, Chat.Name));
     }
     [Parameter]
-    public ChatDto Chat { get; set; } = null!;
+    public ChatDtoBase Chat { get; set; } = null!;
 
     [Parameter]
     public bool IsActive { get; set; } = false;
     [Parameter]
-    public EventCallback<ChatDto> OnClick { get; set; }
+    public EventCallback<ChatDtoBase> OnClick { get; set; }
 
 }

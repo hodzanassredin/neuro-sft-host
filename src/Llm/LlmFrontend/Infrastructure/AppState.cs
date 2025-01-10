@@ -1,9 +1,9 @@
 ﻿using LlmCommon;
 using LlmCommon.Abstractions;
+using LlmCommon.Dtos;
 using LlmCommon.Events;
 using LlmCommon.Queries;
 using LlmCommon.Views;
-using Microsoft.Extensions.Logging;
 
 namespace LlmFrontend.Infrastructure
 {
@@ -14,20 +14,21 @@ namespace LlmFrontend.Infrastructure
             public static AppStateChangedEvent Instance = new AppStateChangedEvent();
         }
 
-        public AppState(ILogger<AppState> logger,  IServiceProvider sp, IEventBus bus, IRequestHandler handler)
+        public AppState(ILogger<AppState> logger,  IEventBus bus, IRequestHandler handler)
         {
             this.logger = logger;
-            this.sp = sp;
             this.bus = bus;
             this.handler = handler;
             bus.Subscribe(this);
         }
         private AllChatsView? chats;
+        private List<ChatDto> loadedChats = [];
 
         public AllChatsView ChatsView => chats;
 
+        
+
         private readonly ILogger<AppState> logger;
-        private readonly IServiceProvider sp;
         private readonly IEventBus bus;
         private readonly IRequestHandler handler;
 
@@ -36,12 +37,24 @@ namespace LlmFrontend.Infrastructure
             await bus.Publish(AppStateChangedEvent.Instance);
         }
 
+
+        public async Task<ChatDto> GetChat(Ids.Id id) {
+            var chat = loadedChats.SingleOrDefault(x => x.Id == id);
+            if (chat == null) {
+                var chatView = await handler.HandleQuery(new ChatQuery(id)) as ChatView;
+                chat = chatView.Chat;
+                loadedChats.Add(chat);
+            }
+
+            return chat;
+        }
+
         public void Dispose()
         {
             bus?.UnSubscribe(this);
         }
 
-        public async Task Handle(Event ev)
+        public async Task<bool> Handle(Event ev)
         {
             if (ev is ChatEvent cev)
             {
@@ -51,8 +64,9 @@ namespace LlmFrontend.Infrastructure
                     logger.LogInformation($"Recieved event {cev.ToString()}");
                     await bus.Publish(AppStateChangedEvent.Instance);
                 }
+                return accepted;
             }
-            
+            return false;
         }
     }
 }

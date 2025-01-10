@@ -3,6 +3,6 @@ namespace LlmCommon.Abstractions
 {
     public interface IEventHandler
     {
-        Task Handle(Event ev);
+        Task<bool> Handle(Event ev);//todo do not return true, use state has changed event
     }
 }
