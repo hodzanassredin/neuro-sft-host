@@ -1,6 +1,5 @@
 ﻿
 using LlmCommon.Abstractions;
-using LlmCommon.Commands.Chat;
 
 namespace LlmCommon
 {

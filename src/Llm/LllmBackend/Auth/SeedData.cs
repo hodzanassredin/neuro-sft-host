@@ -9,6 +9,7 @@ namespace LlmBackend.Auth
         {
             using var context = new AppDbContext(serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
             context.Database.EnsureCreated();
+            //context.Database.Migrate();
             if (context.Users.Any())
             {
                 return;

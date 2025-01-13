@@ -5,11 +5,9 @@ namespace LlmCommon.Events
 {
     public class RemovedChatEvent : ChatEvent
     {
-        public Ids.Id ChatId { get; set; }
 
-        public RemovedChatEvent(Ids.Id chatId)
+        public RemovedChatEvent(Ids.Id chatId) : base(chatId) 
         {
-            ChatId = chatId;
         }
         public override Task<bool> Accept(IChatsEventHandler visitor)
         {

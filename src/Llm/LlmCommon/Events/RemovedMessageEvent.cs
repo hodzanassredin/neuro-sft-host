@@ -4,11 +4,8 @@ namespace LlmCommon.Events
 {
     public class RemovedMessageEvent : ChatEvent
     {
-        public Ids.Id ChatId { get; set; } = Ids.Empty;
-
-        public RemovedMessageEvent(Ids.Id chatId, Ids.Id messageId)
+        public RemovedMessageEvent(Ids.Id chatId, Ids.Id messageId) : base(chatId)
         {
-            ChatId = chatId;
             MessageId = messageId;
         }
 

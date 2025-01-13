@@ -10,15 +10,13 @@ namespace LlmCommon.Events
         {
             return $"{nameof(ChangedMessageEvent)} ({User.Name}: ({ChatId}:{MessageId}) {Text}";
         }
-        public ChangedMessageEvent(Ids.Id chatId, Ids.Id messageId, string text, User user, bool append)
+        public ChangedMessageEvent(Ids.Id chatId, Ids.Id messageId, string text, User user, bool append) : base(chatId)
         {
-            ChatId = chatId;
             MessageId = messageId;
             Text = text;
             User = user;
             Append = append;
         }
-        public Ids.Id ChatId { get; set; } = Ids.Empty;
         public string Text { get; set; } = String.Empty;
         public Ids.Id MessageId { get; set; } = Ids.Empty;
         public User User { get; set; }

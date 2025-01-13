@@ -5,9 +5,8 @@ namespace LlmCommon.Events
 {
     public class ChangedChatEvent : ChatEvent
     {
-        public ChangedChatEvent(Ids.Id chatId, string name, User user)
+        public ChangedChatEvent(Ids.Id chatId, string name, User user) : base(chatId)
         {
-            ChatId = chatId;
             Name = name;
             User = user;
         }

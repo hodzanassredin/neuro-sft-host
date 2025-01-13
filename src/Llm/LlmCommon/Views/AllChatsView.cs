@@ -1,12 +1,19 @@
 ﻿using LlmCommon.Abstractions;
 using LlmCommon.Dtos;
 using LlmCommon.Events;
+using System.Text.Json.Serialization;
 
 namespace LlmCommon.Views
 {
     public class AllChatsView : View, IChatsEventHandler
     {
+        [JsonInclude]
         public List<ChatDtoBase> Chats { get; set; } = [];
+
+        public override bool IsValid()
+        {
+            return Chats != null;
+        }
 
         public Task<bool> Visit(ChangedMessageEvent ev)
         {

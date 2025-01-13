@@ -217,6 +217,8 @@ namespace LlmBackend
             var handler = app.Services.GetRequiredService<ChatHubEventHandler>();
 
             eventBus.Subscribe(handler);
+
+            Registrator.Register(app.Services);
             app.Run();
         }
     }

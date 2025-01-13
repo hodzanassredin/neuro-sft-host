@@ -3,7 +3,6 @@ namespace LlmCommon.Abstractions
 {
     public interface IExecutor
     {
-        Ids.Id LastAddedMessageId { get;  }
 
         Task Visit(LeaveCommand leaveCommand, IContext ctx);
         Task Visit(JoinCommand joinCommand, IContext ctx);

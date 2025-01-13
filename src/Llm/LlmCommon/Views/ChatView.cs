@@ -2,12 +2,19 @@
 using LlmCommon.Dtos;
 using LlmCommon.Events;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace LlmCommon.Views
 {
     public class ChatView : View, IChatsEventHandler
     {
+        [JsonInclude]
         public ChatDto Chat { get; set; }
+
+        public override bool IsValid()
+        {
+            return Chat != null && Chat.Id != Ids.Empty && Chat.Owner.Id != Ids.Empty;
+        }
 
         public Task<bool> Visit(ChangedMessageEvent ev)
         {
@@ -67,7 +74,13 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(CreatedChatEvent createdChatEvent)
         {
-            return Task.FromResult(false);
+            Debug.Assert(this.Chat == null);
+            this.Chat = new ChatDto { 
+                Id = createdChatEvent.ChatId,
+                Name = createdChatEvent.Name,
+                Owner = createdChatEvent.Owner
+            };
+            return Task.FromResult(true);
         }
 
         public Task<bool> Visit(RemovedChatEvent removedChatEvent)

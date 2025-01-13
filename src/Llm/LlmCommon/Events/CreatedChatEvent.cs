@@ -5,13 +5,12 @@ namespace LlmCommon.Events
 {
     public class CreatedChatEvent : ChatEvent
     {
-        public CreatedChatEvent(Ids.Id chatId, string name, User owner)
+        public CreatedChatEvent(Ids.Id chatId, string name, User owner) : base(chatId)
         {
-            ChatId = chatId;
+            
             Name = name;
             Owner = owner;
         }
-        public Ids.Id ChatId { get; set; }
         public string Name { get; set; }
         public User Owner { get; set; }
 

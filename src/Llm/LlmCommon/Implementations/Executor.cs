@@ -1,15 +1,12 @@
 ﻿using LlmCommon.Abstractions;
 using LlmCommon.Commands.Chat;
 using LlmCommon.Entities;
-using LlmCommon.Queries;
-using LlmCommon.Views;
 using System.Diagnostics;
 
 namespace LlmCommon.Implementations
 {
-    public class Executor(IEntityStorage storage, AiManager aiManager) : IExecutor
+    public class Executor(IEntityStorage storage) : IExecutor
     {
-        public Ids.Id LastAddedMessageId { get; private set; }
         public async Task Visit(LeaveCommand cmd, IContext ctx)
         {
             var chat = await storage.Load<ChatEntity>(cmd.ChatId);
@@ -43,12 +40,8 @@ namespace LlmCommon.Implementations
             var chat = await storage.Load<ChatEntity>(cmd.ChatId);
             Debug.Assert(chat != null);
             var user = ctx.GetCurrentUser();
-            var id = chat.AddMessage(cmd.Text, user);
+            cmd.AddedMessageId = chat.AddMessage(cmd.Text, user);
             await storage.Upsert(chat);
-
-            LastAddedMessageId = id;
-
-            await aiManager.StartGeneration(cmd.ChatId);
         }
 
         public async Task Visit(RemoveMessageCommand cmd, IContext ctx)

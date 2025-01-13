@@ -44,6 +44,8 @@ namespace LlmCommon.Commands.Chat
     {
         public Ids.Id ChatId { get; } = chatId;
         public string Text { get; } = text;
+
+        public Ids.Id AddedMessageId { get; set; }
         public override Task Accept(IExecutor visitor, IContext ctx)
         {
             return visitor.Visit(this, ctx);

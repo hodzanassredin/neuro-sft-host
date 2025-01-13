@@ -3,6 +3,7 @@ using LlmCommon;
 using LlmBackend.Auth;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace LlmBackend.Infrastructure
 {
@@ -35,13 +36,15 @@ namespace LlmBackend.Infrastructure
             var res = await ctx.Entities.AsNoTracking().SingleOrDefaultAsync(x => x.Id == entity.Id.ToString());
             if (res == null)
             {
-                ctx.Entities.Add(new DbEntity() { 
+                res = new DbEntity()
+                {
                     Id = entity.Id.ToString(),
-                    Entity = JsonSerializer.SerializeToDocument(entity)
-                });
+                    Entity = JsonSerializer.SerializeToDocument(entity, entity.GetType())
+                };
+                ctx.Entities.Add(res);
             }
             else {
-                res.Entity = JsonSerializer.SerializeToDocument(entity);
+                res.Entity = JsonSerializer.SerializeToDocument(entity, entity.GetType());
                 ctx.Entities.Update(res);
             }
         }

@@ -7,7 +7,16 @@
     }
     public class ChatDto : ChatDtoBase
     {
-        public List<User> Subscribers { get; set; } = [];
-        public List<MessageDto> Messages { get; set; } = [];
+        private ChatDto(List<User> subscribers, List<MessageDto> messages)
+        {
+            Subscribers = subscribers ?? [];
+            Messages = messages ?? [];
+        }
+        public ChatDto()
+        {
+            
+        }
+        public List<User> Subscribers { get; private set; } = [];
+        public List<MessageDto> Messages { get; private set; } = [];
     }
 }

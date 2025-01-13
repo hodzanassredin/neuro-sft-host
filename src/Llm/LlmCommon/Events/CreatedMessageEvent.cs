@@ -6,15 +6,13 @@ namespace LlmCommon.Events
 {
     public class CreatedMessageEvent : ChatEvent
     {
-        public CreatedMessageEvent(User writer, Ids.Id chatId, Ids.Id messageId, string text)
+        public CreatedMessageEvent(User writer, Ids.Id chatId, Ids.Id messageId, string text) : base(chatId)
         {
             Writer = writer;
-            ChatId = chatId;
             MessageId = messageId;
             Text = text;
         }
         public User Writer { get; set; } = User.Empty;
-        public Ids.Id ChatId { get; set; } = Ids.Empty;
         public Ids.Id MessageId { get; set; } = Ids.Empty;
         public string Text { get; set; } = String.Empty;
 

@@ -5,11 +5,9 @@ namespace LlmCommon.Events
 {
     public class UserLeaveEvent : ChatEvent
     {
-        public Ids.Id ChatId { get; set; }
 
-        public UserLeaveEvent(Ids.Id chatId, User user)
+        public UserLeaveEvent(Ids.Id chatId, User user) : base(chatId)
         {
-            ChatId = chatId;
             User = user;
         }
 

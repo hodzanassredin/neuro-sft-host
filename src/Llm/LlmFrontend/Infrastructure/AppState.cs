@@ -12,6 +12,11 @@ namespace LlmFrontend.Infrastructure
         public class AppStateChangedEvent : Event
         {
             public static AppStateChangedEvent Instance = new AppStateChangedEvent();
+
+            public override bool IsValid()
+            {
+                return true;
+            }
         }
 
         public AppState(ILogger<AppState> logger,  IEventBus bus, IRequestHandler handler)

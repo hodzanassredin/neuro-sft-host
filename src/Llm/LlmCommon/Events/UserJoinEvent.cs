@@ -5,11 +5,9 @@ namespace LlmCommon.Events
 {
     public class UserJoinEvent : ChatEvent
     {
-        public Ids.Id ChatId { get; set; }
 
-        public UserJoinEvent(Ids.Id chatId, User user)
+        public UserJoinEvent(Ids.Id chatId, User user) : base(chatId)
         {
-            ChatId = chatId;
             User = user;
         }
 

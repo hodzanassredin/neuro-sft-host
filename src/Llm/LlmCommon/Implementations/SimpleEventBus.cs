@@ -1,5 +1,7 @@
 ﻿using LlmCommon.Abstractions;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Runtime.ConstrainedExecution;
 
 namespace LlmCommon.Implementations
 {
@@ -8,6 +10,7 @@ namespace LlmCommon.Implementations
         ConcurrentBag<IEventHandler> handlers = [];
         public Task Publish(Event @event)
         {
+            Debug.Assert(@event != null && @event.IsValid());
             var tasks = handlers.Select(h => h.Handle(@event)).ToList();
             return Task.WhenAll(tasks);
         }

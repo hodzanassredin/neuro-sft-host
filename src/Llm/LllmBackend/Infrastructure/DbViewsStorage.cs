@@ -4,6 +4,7 @@ using LlmCommon.Abstractions;
 using LlmCommon.Queries;
 using LlmCommon.Views;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace LlmBackend.Infrastructure
@@ -18,18 +19,20 @@ namespace LlmBackend.Infrastructure
         }
 
         private async Task Save(View view, string key) {
+            Debug.Assert(view != null && !String.IsNullOrEmpty(key) && view.IsValid());
             var ent = await this.context.Views
                     .SingleOrDefaultAsync(x => x.Id == key);
             if (ent == null)
             {
-                context.Views.Add(new DbView
+                var v = new DbView
                 {
                     Id = key,
-                    View = JsonSerializer.SerializeToDocument(view)
-                });
+                    View = JsonSerializer.SerializeToDocument(view, view.GetType())
+                };
+                context.Views.Add(v);
             }
             else {
-                ent.View = JsonSerializer.SerializeToDocument(view);
+                ent.View = JsonSerializer.SerializeToDocument(view, view.GetType());
                 context.Views.Update(ent);
             }
         }
@@ -39,16 +42,19 @@ namespace LlmBackend.Infrastructure
                     .Where(x=>x.Id == key)
                     .Select(x => x.View)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync();
             if (ent == null) {
                 return null;
             }
-            return ent.Deserialize<TV>();
+            var res = ent.Deserialize<TV>();
+            Debug.Assert(res != null);
+            return res;
         }
         
-        public override Task<AllChatsView> Get(AllChatsQuery q)
+        public override async Task<AllChatsView> Get(AllChatsQuery q)
         {
-            return Get<AllChatsView>(Keys.ALL_CHATS_KEY)!;
+            var res = await Get<AllChatsView>(Keys.ALL_CHATS_KEY) ?? new AllChatsView();
+            return res;
         }
 
         public override Task<ChatView?> Get(ChatQuery q)

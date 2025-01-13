@@ -1,5 +1,6 @@
 ﻿using LlmCommon.Abstractions;
 using LlmCommon.Views;
+using System.Diagnostics;
 
 namespace LlmCommon.Queries
 {
@@ -7,6 +8,7 @@ namespace LlmCommon.Queries
     {
         public ChatQuery(Ids.Id chatId)
         {
+            Debug.Assert(chatId != null && chatId != Ids.Empty);
             ChatId = chatId;
         }
 

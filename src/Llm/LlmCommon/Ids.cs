@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace LlmCommon
 {
-    public class Ids
+    public class Ids//todo struct
     {
         public abstract class Directory
         {

@@ -13,7 +13,7 @@ namespace LlmCommon.Implementations
         private readonly IChatClient client;
         private readonly IExecutor executor;
         private readonly IMetrics metrics;
-        public readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
+        public static readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
 
         private const string model = "/models/toxic_sft_cotype/merged";
 
@@ -33,26 +33,28 @@ namespace LlmCommon.Implementations
 
             var msgs = await MapMsgs(chatId, system);
             var opts = GetOps();
-            await new AddMessageCommand(chatId, "").Accept(executor, this);
-            var msgId = executor.LastAddedMessageId;//todo remove that crap
+            
             //var resp = client.CompleteAsync(msgs, opts, cts.Token);
             var stream = client.CompleteStreamingAsync(msgs, opts);
 
             TimeSpan prevTokenTime = TimeSpan.MaxValue;
-            
+            Ids.Id? msgId = null; 
             await foreach (var item in stream)
             {
-                if (prevTokenTime == TimeSpan.MaxValue)
+                if (msgId == null)//first token received
                 {
                     prevTokenTime = sw.Elapsed;
                     metrics.SetTimeToFirstToken(prevTokenTime);
+                    var cmd = new AddMessageCommand(chatId, "");
+                    await cmd.Accept(executor, this);
+                    msgId = cmd.AddedMessageId;
                 }
                 else {
                     metrics.SetTimeToInterTokenDelay(sw.Elapsed - prevTokenTime);
                     prevTokenTime = sw.Elapsed;
-                    
+                    await new ChangeMessageCommand(chatId, msgId, item.Text ?? "", true).Accept(executor, this);
                 }
-                await new ChangeMessageCommand(chatId, msgId, item.Text??"", true).Accept(executor,this);
+                
             }
 
             metrics.SetTimeToWholeRequest(sw.Elapsed);
