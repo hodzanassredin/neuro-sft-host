@@ -31,12 +31,11 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(CreatedMessageEvent ev)
         {
-            Debug.Assert(Chat?.Id == ev.ChatId);
+            if (Chat?.Id != ev.ChatId) {
+                return Task.FromResult(false); 
+            }
             var alreadyContains = Chat.Messages.Any(x => x.Id == ev.MessageId);
             Debug.Assert(!alreadyContains);
-            if (alreadyContains) { 
-            
-            }
             Chat.Messages.Add(new MessageDto
             {
                 Id = ev.MessageId,
