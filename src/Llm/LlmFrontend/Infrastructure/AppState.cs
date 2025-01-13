@@ -27,7 +27,7 @@ namespace LlmFrontend.Infrastructure
             bus.Subscribe(this);
         }
         private AllChatsView? chats;
-        private List<ChatDto> loadedChats = [];
+        private List<ChatView> loadedChats = [];
 
         public AllChatsView ChatsView => chats;
 
@@ -44,14 +44,13 @@ namespace LlmFrontend.Infrastructure
 
 
         public async Task<ChatDto> GetChat(Ids.Id id) {
-            var chat = loadedChats.SingleOrDefault(x => x.Id == id);
+            var chat = loadedChats.SingleOrDefault(x => x.Chat.Id == id);
             if (chat == null) {
-                var chatView = await handler.HandleQuery(new ChatQuery(id)) as ChatView;
-                chat = chatView.Chat;
+                chat = await handler.HandleQuery(new ChatQuery(id)) as ChatView;
                 loadedChats.Add(chat);
             }
 
-            return chat;
+            return chat.Chat;
         }
 
         public void Dispose()
@@ -64,6 +63,10 @@ namespace LlmFrontend.Infrastructure
             if (ev is ChatEvent cev)
             {
                 var accepted = await cev.Accept(chats);
+                foreach (var chat in loadedChats) {
+                    accepted = accepted || await cev.Accept(chat);
+                }
+
                 if (accepted)
                 {
                     logger.LogInformation($"Recieved event {cev.ToString()}");

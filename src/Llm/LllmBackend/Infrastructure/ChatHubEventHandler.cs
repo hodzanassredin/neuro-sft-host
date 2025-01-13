@@ -18,13 +18,11 @@ namespace LlmBackend.Infrastructure
 
         }
 
-        private string GetGroupName(Ids.Id chatId) {
-            return chatId.ToString();
-        }
+
 
         public async Task<bool> Visit(ChangedMessageEvent ev)
         {
-            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
+            await this.hub.Clients.Group(ChatHub.GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
@@ -37,7 +35,7 @@ namespace LlmBackend.Infrastructure
 
         public async Task<bool> Visit(CreatedMessageEvent ev)
         {
-            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
+            await this.hub.Clients.Group(ChatHub.GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
@@ -49,7 +47,7 @@ namespace LlmBackend.Infrastructure
 
         public async Task<bool> Visit(RemovedMessageEvent ev)
         {
-            await this.hub.Clients.Group(GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
+            await this.hub.Clients.Group(ChatHub.GetGroupName(ev.ChatId)).HandleEvent(new Envelope(Ids.dir.GenerateId(), ev));
             return true;
         }
 
@@ -67,7 +65,7 @@ namespace LlmBackend.Infrastructure
             var connections = this.GetUserConnections(user);
             foreach (var connId in connections)
             {
-                await this.hub.Groups.AddToGroupAsync(connId, GetGroupName(chatId));
+                await this.hub.Groups.AddToGroupAsync(connId, ChatHub.GetGroupName(chatId));
             }
         }
 
@@ -76,7 +74,7 @@ namespace LlmBackend.Infrastructure
             var connections = this.GetUserConnections(ev.User);
             foreach (var connId in connections)
             {
-                await this.hub.Groups.RemoveFromGroupAsync(connId, GetGroupName(ev.ChatId));
+                await this.hub.Groups.RemoveFromGroupAsync(connId, ChatHub.GetGroupName(ev.ChatId));
             }
             return true;
         }

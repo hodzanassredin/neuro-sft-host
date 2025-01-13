@@ -268,7 +268,7 @@
         var changed = false;
         if (ev is AppState.AppStateChangedEvent)
         {
-            if (currentChat != null && !state.ChatsView.Chats.Contains(currentChat)) {
+            if (currentChat != null && !state.ChatsView.Chats.Any(x=>x.Id == currentChat.Id)) {
                 currentChat = null;
             }
 

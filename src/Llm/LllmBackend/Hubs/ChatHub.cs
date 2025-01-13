@@ -15,6 +15,12 @@ namespace LlmBackend.Hubs
     }
     public class ChatHub : Hub<IFrontendChatClient>, IContext
     {
+
+        public static string GetGroupName(Ids.Id chatId)
+        {
+            return chatId.ToString();
+        }
+
         public readonly static ConnectionMapping<Ids.Id> _connections =
             new ConnectionMapping<Ids.Id>();
         private readonly IExecutor executor;
@@ -45,7 +51,7 @@ namespace LlmBackend.Hubs
             var user = ((IContext)this).GetCurrentUser();
             if (res is ChatView acq) {
                 foreach (var connId in _connections.GetConnections(user.Id)) {
-                    await Groups.AddToGroupAsync(connId, acq.Chat.Id.ToString());
+                    await Groups.AddToGroupAsync(connId, GetGroupName(acq.Chat.Id));
                 }
             }
             return new Envelope(e.CorellationId, res);
