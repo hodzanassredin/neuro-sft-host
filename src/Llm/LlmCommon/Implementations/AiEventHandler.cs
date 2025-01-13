@@ -52,7 +52,7 @@ namespace LlmCommon.Implementations
                     // No need to resume on the original SynchronizationContext, so use ConfigureAwait(false)
                     await task.ConfigureAwait(false);
                 }
-                catch
+                catch(Exception ex)
                 {
                     // Nothing to do here
                 }

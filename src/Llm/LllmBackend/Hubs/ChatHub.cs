@@ -41,7 +41,7 @@ namespace LlmBackend.Hubs
 
             var sw = Stopwatch.StartNew();
             await cmd.Accept(executor, this);
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.StoreAsync();
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)

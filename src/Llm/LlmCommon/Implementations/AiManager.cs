@@ -13,17 +13,19 @@ namespace LlmCommon.Implementations
         private readonly IChatClient client;
         private readonly IExecutor executor;
         private readonly IMetrics metrics;
+        private readonly IUnitOfWork unitOfWork;
         public static readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
 
         private const string model = "/models/toxic_sft_cotype/merged";
 
         //private ConcurrentDictionary<Ids.Id, CancellationTokenSource> inFly = new();
-        public AiManager(IEntityStorage entStorage, IChatClient client, IExecutor executor, IMetrics metrics)
+        public AiManager(IEntityStorage entStorage, IChatClient client, IExecutor executor, IMetrics metrics, IUnitOfWork unitOfWork)
         {
             this.entStorage = entStorage;
             this.client = client;
             this.executor = executor;
             this.metrics = metrics;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task StartGeneration(Ids.Id chatId, string? system = null)
@@ -47,12 +49,14 @@ namespace LlmCommon.Implementations
                     metrics.SetTimeToFirstToken(prevTokenTime);
                     var cmd = new AddMessageCommand(chatId, "");
                     await cmd.Accept(executor, this);
+                    await unitOfWork.StoreAsync();
                     msgId = cmd.AddedMessageId;
                 }
                 else {
                     metrics.SetTimeToInterTokenDelay(sw.Elapsed - prevTokenTime);
                     prevTokenTime = sw.Elapsed;
                     await new ChangeMessageCommand(chatId, msgId, item.Text ?? "", true).Accept(executor, this);
+                    await unitOfWork.StoreAsync();
                 }
                 
             }

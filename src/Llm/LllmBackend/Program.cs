@@ -102,7 +102,7 @@ namespace LlmBackend
             builder.Services.AddScoped<ViewStorage, DbViewsStorage>();
             builder.Services.AddScoped<IUnitOfWork>(c => c.GetRequiredService<AppDbContext>());
             builder.Services.AddScoped<AiManager>();
-            builder.Services.AddScoped<IEntityStorage>(sp => new BroadcastStorage(new DbEntityStorage(sp.GetRequiredService<AppDbContext>()), sp.GetRequiredService<IEventBus>()));
+            builder.Services.AddScoped<IEntityStorage, DbEntityStorage>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

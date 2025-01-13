@@ -43,7 +43,7 @@ namespace LlmCommon.Views
                 }
                 if (changed)
                 {
-                    await unitOfWork.SaveChangesAsync();
+                    await unitOfWork.StoreAsync();
                 }
             }
             return changed;

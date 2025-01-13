@@ -6,10 +6,25 @@ using System.Text.Json;
 
 namespace LlmBackend.Auth
 {
-    class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser>(options), IUnitOfWork
+    class AppDbContext(DbContextOptions<AppDbContext> options, IEventBus eventBus) : IdentityDbContext<AppUser>(options), IUnitOfWork
     {
         public DbSet<DbView> Views { get; set; }
         public DbSet<DbEntity> Entities { get; set; }
+        private readonly List<Event> eventsToBroadcast = new List<Event>();
+
+        public void AddEventsFrom(Entity e) {
+            eventsToBroadcast.AddRange(e.DequeueUncommittedEvents());
+        }
+
+        public async Task<int> StoreAsync(CancellationToken cancellationToken = default)
+        {
+            var i = await this.SaveChangesAsync();
+            foreach (var e in eventsToBroadcast) {
+                await eventBus.Publish(e);
+            }
+            eventsToBroadcast.Clear();
+            return i;
+        }
     }
 
     public class DbView : IDisposable {

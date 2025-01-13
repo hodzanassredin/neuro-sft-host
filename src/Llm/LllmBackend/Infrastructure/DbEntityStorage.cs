@@ -3,7 +3,6 @@ using LlmCommon;
 using LlmBackend.Auth;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace LlmBackend.Infrastructure
 {
@@ -16,9 +15,17 @@ namespace LlmBackend.Infrastructure
             this.ctx = ctx;
         }
 
+        private async Task<DbEntity?> LoadInternal(Ids.Id id) {
+            var res = ctx.Entities.Local.SingleOrDefault(x => x.Id == id.ToString());
+            if (res == null)
+            {
+                res = await ctx.Entities.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id.ToString());
+            }
+            return res;
+        }
         public async Task<T?> Load<T>(Ids.Id id) where T : Entity
         {
-            var res = await ctx.Entities.AsNoTracking().SingleOrDefaultAsync(x=>x.Id == id.ToString());
+            var res = await LoadInternal(id);
             if (res == null) {
                 return null;
             }
@@ -29,11 +36,12 @@ namespace LlmBackend.Infrastructure
         {
             DbEntity toDelete = new DbEntity() { Id = entity.Id.ToString() };
             ctx.Entities.Entry(toDelete).State = EntityState.Deleted;
+            ctx.AddEventsFrom(entity);
         }
 
         public async Task Upsert(Entity entity)
         {
-            var res = await ctx.Entities.AsNoTracking().SingleOrDefaultAsync(x => x.Id == entity.Id.ToString());
+            var res = await LoadInternal(entity.Id);
             if (res == null)
             {
                 res = new DbEntity()
@@ -47,6 +55,7 @@ namespace LlmBackend.Infrastructure
                 res.Entity = JsonSerializer.SerializeToDocument(entity, entity.GetType());
                 ctx.Entities.Update(res);
             }
+            ctx.AddEventsFrom(entity);
         }
     }
 }

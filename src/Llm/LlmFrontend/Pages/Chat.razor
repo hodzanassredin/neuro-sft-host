@@ -269,6 +269,7 @@
         if (ev is AppState.AppStateChangedEvent)
         {
             if (currentChat != null && !state.ChatsView.Chats.Any(x=>x.Id == currentChat.Id)) {
+                //close chat if it is removed
                 currentChat = null;
             }
 

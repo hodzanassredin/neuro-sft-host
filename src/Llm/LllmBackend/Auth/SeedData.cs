@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using LlmCommon.Abstractions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LlmBackend.Auth
@@ -7,7 +8,7 @@ namespace LlmBackend.Auth
     {
         public static async Task InitializeAsync(IServiceProvider serviceProvider)
         {
-            using var context = new AppDbContext(serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
+            using var context = new AppDbContext(serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>(), serviceProvider.GetRequiredService<IEventBus>());
             context.Database.EnsureCreated();
             //context.Database.Migrate();
             if (context.Users.Any())
