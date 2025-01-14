@@ -98,6 +98,20 @@
                                                     <div class="flex-grow-1 ms-3">
                                                         <h3>@currentChat?.Name</h3>
                                                         <p>@currentChat?.Owner?.Name</p>
+                                                        <p>
+                                                            <button class="btn btn-primary" type="button" onclick="@ToggleSettings">
+                                                                Model settings
+                                                            </button>
+                                                            @if (showSettings)
+                                                            {
+                                                                <div>
+                                                                    <AiPanel Settings="@currentChat.AiSettings" OnSave="AiSettingsSave"></AiPanel>
+                                                                </div>
+                                                            }
+                                                        </p>
+
+
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -121,7 +135,7 @@
 
 
                                     <div @ref="messagesRef" class="modal-body">
-                                        <div class="msg-body">
+                                        <div class="msg-body" >
                                             <ul>
                                                 @if (currentChat != null && currentChat.Messages.Count > 0)
                                                 {
@@ -144,7 +158,7 @@
                                                             </li>
                                                         }
 
-                                                        <MessageItem Message="msg" ></MessageItem>
+                                                        <MessageItem Message="msg" IsSelected="msg.Id==selectedId" OnSelect="@SelectMessage"></MessageItem>
 
                                                     }
                                                 }
@@ -198,6 +212,15 @@
 </section>
 
 @code{
+    private Ids.Id selectedId = Ids.Empty;
+    private void SelectMessage(Ids.Id id) {
+        selectedId = id;
+    }
+
+
+    private void ToggleSettings() { showSettings = !showSettings; }
+    private bool showSettings = false;
+
     private ElementReference messagesRef;
 
     private string search = String.Empty;
@@ -217,6 +240,11 @@
             await module.InvokeVoidAsync("scrollToEnd", messagesRef);
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task AiSettingsSave(AiSettingsDto settings) { 
+        await handler.Handle(new LlmCommon.Commands.Chat.ChangeChatCommand(currentChat.Id, null, settings));
+        showSettings = false;
     }
 
     public IEnumerable<ChatDtoBase> GetChats(bool isJoined) {

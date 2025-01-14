@@ -1,12 +1,13 @@
 ﻿
 
 using LlmCommon.Abstractions;
+using LlmCommon.Dtos;
 
 namespace LlmCommon.Commands.Chat
 {
     public class AddChatCommand(string name) : Command
     {
-        public string Name { get; } = name;
+        public string? Name { get; } = name;
 
         public override Task Accept(IExecutor visitor, IContext ctx)
         {
@@ -14,10 +15,11 @@ namespace LlmCommon.Commands.Chat
         }
     }
 
-    public class ChangeChatCommand(Ids.Id chatId, string text) : Command
+    public class ChangeChatCommand(Ids.Id chatId, string? text, AiSettingsDto? aiSettings) : Command
     {
         public Ids.Id ChatId { get; } = chatId;
-        public string Text { get; } = text;
+        public string? Text { get; } = text;
+        public AiSettingsDto? AiSettings { get; } = aiSettings;
         public override Task Accept(IExecutor visitor, IContext ctx)
         {
             return visitor.Visit(this, ctx);
@@ -32,6 +34,15 @@ namespace LlmCommon.Commands.Chat
         }
     }
     public class RemoveMessageCommand(Ids.Id chatId, Ids.Id messageId) : Command
+    {
+        public Ids.Id ChatId { get; } = chatId;
+        public Ids.Id MessageId { get; } = messageId;
+        public override Task Accept(IExecutor visitor, IContext ctx)
+        {
+            return visitor.Visit(this, ctx);
+        }
+    }
+    public class RegenerateMessageCommand(Ids.Id chatId, Ids.Id messageId) : Command
     {
         public Ids.Id ChatId { get; } = chatId;
         public Ids.Id MessageId { get; } = messageId;

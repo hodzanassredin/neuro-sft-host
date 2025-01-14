@@ -1,14 +1,37 @@
-﻿@using LlmCommon.Dtos
+﻿@using LlmCommon
+@using LlmCommon.Abstractions
+@using LlmCommon.Dtos
+@using LlmCommon.Implementations
 @using LlmFrontend.Infrastructure
 @using System.Globalization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IRequestHandler handler
 
 @if (Message!=null){
 
     var cl = isFromCurrent ? "sender" : "repaly";
-    <li class="@cl">
-        <p>@Message.Text</p>
+    <li class="@cl" @onclick="@OnClick">
+
+
+        @if (IsSelected){
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="" aria-label="" aria-describedby="basic-addon1">
+                <div class="input-group-append">
+                    @if (Message.User.Id == AiManager.aiUser.Id)
+                    {
+                        <button class="btn btn-primary btn-sm" type="button"  @onclick="Regenerate"><i class="bi bi-bootstrap-reboot"></i></button>
+                    }
+                    <button class="btn btn-outline-danger  btn-sm" type="button" @onclick="Remove"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+
+        }
+        else {
+            <p>@Message.Text</p>
+        }
+
         <span class="time">@ConvertDateTimeOffsetToLocalTimeString(Message.CreatedAt)</span>
+
     </li>
 }
 
@@ -43,6 +66,23 @@
     {
         return base.OnParametersSetAsync();
     }
+    private Task OnClick() {
+        return OnSelect.InvokeAsync();
+    }
+
+    private Task Regenerate()
+    {
+        return handler.Handle(new LlmCommon.Commands.Chat.RegenerateMessageCommand(ChatId, Message.Id));
+    }
+    private Task Remove() {
+        return handler.Handle(new LlmCommon.Commands.Chat.RemoveMessageCommand(ChatId, Message.Id));
+    }
+    [Parameter]
+    public Ids.Id ChatId { get; set; } = null!;
     [Parameter]
     public MessageDto Message { get; set; } = null!;
+    [Parameter]
+    public bool IsSelected { get; set; } = false;
+    [Parameter]
+    public EventCallback<Ids.Id> OnSelect { get; set; }
 }

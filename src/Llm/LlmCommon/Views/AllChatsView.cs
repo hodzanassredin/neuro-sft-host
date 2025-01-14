@@ -1,6 +1,7 @@
 ﻿using LlmCommon.Abstractions;
 using LlmCommon.Dtos;
 using LlmCommon.Events;
+using System;
 using System.Text.Json.Serialization;
 
 namespace LlmCommon.Views
@@ -60,7 +61,14 @@ namespace LlmCommon.Views
         public Task<bool> Visit(ChangedChatEvent ev)
         {
             var chat = Chats.Single(x => x.Id == ev.ChatId);
-            chat.Name = ev.Name;
+            if (ev.Name != null)
+            {
+                chat.Name = ev.Name;
+            }
+            if (ev.AiSettings != null)
+            {
+                chat.AiSettings = ev.AiSettings;
+            }
             return Task.FromResult(true);
         }
     }

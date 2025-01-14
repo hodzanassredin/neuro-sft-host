@@ -18,17 +18,17 @@ namespace LlmCommon.Implementations
             await ai.StartGeneration(chatId);
         }
 
-        public Task<bool> Handle(Event ev)
+        public async Task<bool> Handle(Event ev)
         {
             if (ev is CreatedMessageEvent cme) {
 
                 if (cme.Writer.Id != AiManager.aiUser.Id) {
-                    Forget(Handle(cme.ChatId));
+                    await Handle(cme.ChatId);//todo forget
                 }
-                return Task.FromResult(true);
+                return true;
             }
 
-            return Task.FromResult(false);
+            return false;
         }
 
         public static void Forget(Task task)

@@ -61,7 +61,7 @@ class="d-flex align-items-center">
     }
     private Task Save()
     {
-        return handler.Handle(new LlmCommon.Commands.Chat.ChangeChatCommand(Chat.Id, Chat.Name));
+        return handler.Handle(new LlmCommon.Commands.Chat.ChangeChatCommand(Chat.Id, Chat.Name, null));
     }
     [Parameter]
     public ChatDtoBase Chat { get; set; } = null!;

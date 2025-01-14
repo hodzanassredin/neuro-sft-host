@@ -8,7 +8,7 @@ namespace LlmCommon.Entities
 {
     public class ChatEntity : Entity
     {
-        [JsonConstructor] // This will work from .NET 8.0
+        [JsonConstructor] 
         private ChatEntity() { }
         public ChatEntity(string name, User user)
         {
@@ -26,11 +26,19 @@ namespace LlmCommon.Entities
                         Id = createdChatEvent.ChatId,
                         Name = createdChatEvent.Name,
                         Owner = createdChatEvent.Owner,
+                        AiSettings = AiSettingsDto.Default
                     };
                     break;
                 case ChangedChatEvent changedChatEvent:
                     Debug.Assert(changedChatEvent.ChatId == this.Id);
-                    Dto.Name = changedChatEvent.Name;
+                    if (changedChatEvent.Name != null)
+                    {
+                        Dto.Name = changedChatEvent.Name;
+                    }
+                    if (changedChatEvent.AiSettings != null)
+                    {
+                        Dto.AiSettings = changedChatEvent.AiSettings;
+                    }
                     break;
                 case CreatedMessageEvent createdMessageEvent:
                     Debug.Assert(createdMessageEvent.ChatId == this.Id);
@@ -85,10 +93,10 @@ namespace LlmCommon.Entities
             Exec(new ChangedMessageEvent(this.Id, messageId, text, user, append));
         }
 
-        public void ChangeChat(User user, string text)
+        public void ChangeChat(User user, string? text, AiSettingsDto? aiSettings)
         {
             CheckAuth(user.IsAdmin || user.Id == this.Dto.Owner.Id);
-            Exec(new ChangedChatEvent(this.Id, text, user));
+            Exec(new ChangedChatEvent(this.Id, text, aiSettings, user));
         }
         public override void Remove(User user)
         {

@@ -72,7 +72,13 @@ namespace LlmCommon.Views
         public Task<bool> Visit(ChangedChatEvent ev)
         {
             Debug.Assert(Chat?.Id == ev.ChatId);
-            Chat.Name = ev.Name;
+            if (ev.Name != null)
+            {
+                Chat.Name = ev.Name;
+            }
+            if (ev.AiSettings != null) { 
+                Chat.AiSettings = ev.AiSettings;
+            }
             return Task.FromResult(true);
         }
 

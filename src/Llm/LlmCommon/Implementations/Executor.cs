@@ -76,9 +76,19 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             if (chat.Dto.Owner.Id == user.Id)
             {
-                chat.ChangeChat(user, cmd.Text);
+                chat.ChangeChat(user, cmd.Text, cmd.AiSettings);
                 await storage.Upsert(chat);
             }
+        }
+
+        public async Task Visit(RegenerateMessageCommand cmd, IContext ctx)
+        {
+            var chat = await storage.Load<ChatEntity>(cmd.ChatId);
+            Debug.Assert(chat != null);
+            var user = ctx.GetCurrentUser();
+            chat.ChangeMessage(user, cmd.MessageId, "", false);
+            await storage.Upsert(chat);
+
         }
     }
 }

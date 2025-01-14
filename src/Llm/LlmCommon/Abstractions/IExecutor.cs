@@ -12,6 +12,6 @@ namespace LlmCommon.Abstractions
         Task Visit(RemoveChatCommand removeChatCommand, IContext ctx);
         Task Visit(AddChatCommand addChatCommand, IContext ctx);
         Task Visit(ChangeChatCommand changeChatCommand, IContext ctx);
-        
+        Task Visit(RegenerateMessageCommand regenerateMessageCommand, IContext ctx);
     }
 }

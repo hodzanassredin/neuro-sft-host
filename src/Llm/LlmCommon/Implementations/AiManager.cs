@@ -16,7 +16,7 @@ namespace LlmCommon.Implementations
         private readonly IUnitOfWork unitOfWork;
         public static readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
 
-        private const string model = "/models/toxic_sft_cotype/merged";
+        
 
         //private ConcurrentDictionary<Ids.Id, CancellationTokenSource> inFly = new();
         public AiManager(IEntityStorage entStorage, IChatClient client, IExecutor executor, IMetrics metrics, IUnitOfWork unitOfWork)
@@ -28,46 +28,55 @@ namespace LlmCommon.Implementations
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task StartGeneration(Ids.Id chatId, string? system = null)
+        public async Task StartGeneration(Ids.Id chatId, Ids.Id? regenerateMsgId = null, string? system = null)
         {
             metrics.IncLlmRequestCount();
             var sw = Stopwatch.StartNew();
 
-            var msgs = await MapMsgs(chatId, system);
-            var opts = GetOps();
+            var chat = (await entStorage.Load<ChatEntity>(chatId)).Dto;
+
+            var msgs = await MapMsgs(chat, regenerateMsgId, system);
+            var opts = GetOps(chat.AiSettings);
             
             //var resp = client.CompleteAsync(msgs, opts, cts.Token);
             var stream = client.CompleteStreamingAsync(msgs, opts);
 
             TimeSpan prevTokenTime = TimeSpan.MaxValue;
-            Ids.Id? msgId = null; 
+
             await foreach (var item in stream)
             {
-                if (msgId == null)//first token received
+                if (prevTokenTime == TimeSpan.MaxValue)//first token received
                 {
                     prevTokenTime = sw.Elapsed;
                     metrics.SetTimeToFirstToken(prevTokenTime);
-                    var cmd = new AddMessageCommand(chatId, "");
-                    await cmd.Accept(executor, this);
-                    await unitOfWork.StoreAsync();
-                    msgId = cmd.AddedMessageId;
+                    if (regenerateMsgId == null)
+                    {
+                        var cmd = new AddMessageCommand(chatId, "");
+                        await cmd.Accept(executor, this);
+                        regenerateMsgId = cmd.AddedMessageId;
+                    }
+                    else {
+                        await new ChangeMessageCommand(chatId, regenerateMsgId!, item.Text ?? "", true).Accept(executor, this);
+                    }
                 }
                 else {
                     metrics.SetTimeToInterTokenDelay(sw.Elapsed - prevTokenTime);
                     prevTokenTime = sw.Elapsed;
-                    await new ChangeMessageCommand(chatId, msgId, item.Text ?? "", true).Accept(executor, this);
-                    await unitOfWork.StoreAsync();
+                    await new ChangeMessageCommand(chatId, regenerateMsgId!, item.Text ?? "", true).Accept(executor, this);
                 }
-                
+                await unitOfWork.StoreAsync();
             }
 
             metrics.SetTimeToWholeRequest(sw.Elapsed);
         }
 
-        private async Task<List<ChatMessage>> MapMsgs(Ids.Id chatId, string? system)
+        private async Task<List<ChatMessage>> MapMsgs(ChatDto chat, Ids.Id? regenerateMsgId, string? system)
         {
-            var chat = (await entStorage.Load<ChatEntity>(chatId)).Dto;
-            var msgs = chat.Messages.Select(x => new ChatMessage()
+            IEnumerable<MessageDto> msgsRaw = chat.Messages.OrderBy(x=>x.CreatedAt);
+            if (regenerateMsgId != null) {
+                msgsRaw = msgsRaw.TakeWhile(x => x.Id != regenerateMsgId);
+            }
+            var msgs = msgsRaw.Select(x => new ChatMessage()
             {
                 AuthorName = x.User.Name,
                 Text = x.Text,
@@ -75,7 +84,7 @@ namespace LlmCommon.Implementations
             }).ToList();
             if (!String.IsNullOrWhiteSpace(system))
             {
-                msgs.Add(new ChatMessage
+                msgs.Insert(0, new ChatMessage
                 {
                     Role = ChatRole.System,
                     Text = system,
@@ -84,17 +93,18 @@ namespace LlmCommon.Implementations
             return msgs;
         }
 
-        private static ChatOptions GetOps()
+        private static ChatOptions GetOps(AiSettingsDto settings)
         {
             return new ChatOptions
             {
-                Temperature = 0.4f,
-                MaxOutputTokens = 150,
-                TopP = 0.8f,
-                FrequencyPenalty = 0,
-                PresencePenalty = 0,
+                Temperature = settings.Temperature,
+                MaxOutputTokens = settings.MaxOutputTokens,
+                TopP = settings.TopP,
+                FrequencyPenalty = settings.FrequencyPenalty,
+                PresencePenalty = settings.PresencePenalty,
                 ResponseFormat = ChatResponseFormatText.Text,
-                ModelId = model,
+                ModelId = settings.Model,
+                Seed = settings.Seed,
             };
         }
 
