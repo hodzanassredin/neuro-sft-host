@@ -1,11 +1,12 @@
 ﻿using LlmCommon.Abstractions;
 using LlmCommon.Commands.Chat;
 using LlmCommon.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 
 namespace LlmCommon.Implementations
 {
-    public class Executor(IEntityStorage storage) : IExecutor
+    public class Executor(IEntityStorage storage, IServiceProvider sp, IUnitOfWork unitOfWork) : IExecutor
     {
         public async Task Visit(LeaveCommand cmd, IContext ctx)
         {
@@ -14,6 +15,7 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             chat.Leave(user);
             await storage.Upsert(chat);
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(JoinCommand cmd, IContext ctx)
@@ -23,6 +25,7 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             chat.Join(user);
             await storage.Upsert(chat);
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(ChangeMessageCommand cmd, IContext ctx)
@@ -32,7 +35,7 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             chat.ChangeMessage(user, cmd.MessageId, cmd.Text, cmd.Append);
             await storage.Upsert(chat);
-
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(AddMessageCommand cmd, IContext ctx)
@@ -42,6 +45,10 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             cmd.AddedMessageId = chat.AddMessage(cmd.Text, user);
             await storage.Upsert(chat);
+            await unitOfWork.StoreAsync();
+            if (user.Id != AiManager.aiUser.Id) {
+                await Generate(cmd.ChatId, null);
+            }
         }
 
         public async Task Visit(RemoveMessageCommand cmd, IContext ctx)
@@ -50,6 +57,7 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             chat.RemoveMessage(user, cmd.MessageId);
             await storage.Upsert(chat);
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(RemoveChatCommand cmd, IContext ctx)
@@ -61,6 +69,7 @@ namespace LlmCommon.Implementations
             {
                 await storage.Remove(chat);
             }
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(AddChatCommand cmd, IContext ctx)
@@ -68,6 +77,7 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             var chat = new ChatEntity(cmd.Name, user);
             await storage.Upsert(chat);
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(ChangeChatCommand cmd, IContext ctx)
@@ -79,6 +89,7 @@ namespace LlmCommon.Implementations
                 chat.ChangeChat(user, cmd.Text, cmd.AiSettings);
                 await storage.Upsert(chat);
             }
+            await unitOfWork.StoreAsync();
         }
 
         public async Task Visit(RegenerateMessageCommand cmd, IContext ctx)
@@ -88,7 +99,15 @@ namespace LlmCommon.Implementations
             var user = ctx.GetCurrentUser();
             chat.ChangeMessage(user, cmd.MessageId, "", false);
             await storage.Upsert(chat);
+            await unitOfWork.StoreAsync();
+            await Generate(cmd.ChatId, cmd.MessageId);
+        }
 
+        private async Task Generate(Ids.Id chatId, Ids.Id? messageId)
+        {
+            using var scope = sp.CreateScope();
+            var ai = scope.ServiceProvider.GetRequiredService<AiManager>();
+            await ai.StartGeneration(chatId);
         }
     }
 }

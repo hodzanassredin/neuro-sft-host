@@ -10,12 +10,7 @@ namespace LlmCommon.Implementations
             var eventBus = sp.GetRequiredService<IEventBus>();
 
             var viewHandler = new ViewsEventHandler(sp);
-            var aiHandler = new AiEventHandler(sp);
             eventBus.Subscribe(viewHandler);
-            eventBus.Subscribe(aiHandler);
         }
-
-
-        
     }
 }

@@ -157,8 +157,9 @@
                                                                 </div>
                                                             </li>
                                                         }
+                                                        bool isSelected = msg.Id == selectedId;
 
-                                                        <MessageItem Message="msg" IsSelected="msg.Id==selectedId" OnSelect="@SelectMessage"></MessageItem>
+                                                        <MessageItem ChatId="@currentChat.Id" Message="msg" IsSelected="@isSelected" OnSelect="@SelectMessage"></MessageItem>
 
                                                     }
                                                 }
@@ -215,6 +216,7 @@
     private Ids.Id selectedId = Ids.Empty;
     private void SelectMessage(Ids.Id id) {
         selectedId = id;
+        StateHasChanged();
     }
 
 

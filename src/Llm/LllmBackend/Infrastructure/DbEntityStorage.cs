@@ -16,10 +16,11 @@ namespace LlmBackend.Infrastructure
         }
 
         private async Task<DbEntity?> LoadInternal(Ids.Id id) {
-            var res = ctx.Entities.Local.SingleOrDefault(x => x.Id == id.ToString());
+            var idStr = id.ToString();
+            var res = ctx.Entities.Local.SingleOrDefault(x => x.Id == idStr);
             if (res == null)
             {
-                res = await ctx.Entities.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id.ToString());
+                res = await ctx.Entities.AsNoTracking().SingleOrDefaultAsync(x => x.Id == idStr);
             }
             return res;
         }

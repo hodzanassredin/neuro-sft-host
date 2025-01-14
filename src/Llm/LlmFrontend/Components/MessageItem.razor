@@ -14,16 +14,20 @@
 
 
         @if (IsSelected){
-            <div class="input-group mb-3">
+            <p>@Message.Text
+
+                @if (Message.User.Id == AiManager.aiUser.Id)
+                {
+                    <button class="btn btn-primary btn-sm" type="button" @onclick="Regenerate"><i class="bi bi-bootstrap-reboot"></i></button>
+                }
+                <button class="btn btn-outline-danger  btn-sm" type="button" @onclick="Remove"><i class="bi bi-trash"></i></button>
+            </p>
+            @* <div class="input-group mb-3">
                 <input type="text" class="form-control" placeholder="" aria-label="" aria-describedby="basic-addon1">
                 <div class="input-group-append">
-                    @if (Message.User.Id == AiManager.aiUser.Id)
-                    {
-                        <button class="btn btn-primary btn-sm" type="button"  @onclick="Regenerate"><i class="bi bi-bootstrap-reboot"></i></button>
-                    }
-                    <button class="btn btn-outline-danger  btn-sm" type="button" @onclick="Remove"><i class="bi bi-trash"></i></button>
+                    
                 </div>
-            </div>
+            </div> *@
 
         }
         else {
@@ -49,7 +53,10 @@
         return localTime.ToString("HH:mm:ss", currentCulture);
     }
 
-
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
     private bool isFromCurrent;
     private User currentUser = User.Empty;
     protected override async Task OnInitializedAsync()
@@ -67,7 +74,7 @@
         return base.OnParametersSetAsync();
     }
     private Task OnClick() {
-        return OnSelect.InvokeAsync();
+        return OnSelect.InvokeAsync(Message.Id);
     }
 
     private Task Regenerate()

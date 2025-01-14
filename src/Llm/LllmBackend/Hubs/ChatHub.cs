@@ -25,13 +25,11 @@ namespace LlmBackend.Hubs
             new ConnectionMapping<Ids.Id>();
         private readonly IExecutor executor;
         private readonly ViewStorage viewStorage;
-        private readonly IUnitOfWork unitOfWork;
 
-        public ChatHub(IExecutor executor, ViewStorage viewStorage, IUnitOfWork unitOfWork)
+        public ChatHub(IExecutor executor, ViewStorage viewStorage)
         {
             this.executor = executor;
             this.viewStorage = viewStorage;
-            this.unitOfWork = unitOfWork;
         }
 
         [Authorize]
@@ -39,9 +37,8 @@ namespace LlmBackend.Hubs
         {
             var cmd = e.Get<Command>();
 
-            var sw = Stopwatch.StartNew();
             await cmd.Accept(executor, this);
-            await unitOfWork.StoreAsync();
+            
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)
