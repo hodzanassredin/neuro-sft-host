@@ -36,7 +36,11 @@ namespace LlmCommon.Views
                     chatView = new ChatView ();
                 }
                 Debug.Assert(chatView != null);
-                if (await cev.Accept(chatView))
+                if (ev is RemovedChatEvent rce) {
+                    await viewStorage.Remove(chatView);
+                    changed = true;
+                }
+                else if (await cev.Accept(chatView))
                 {
                     await viewStorage.Save(chatView);
                     changed = true;

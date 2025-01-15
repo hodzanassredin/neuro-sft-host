@@ -157,9 +157,18 @@ namespace LlmBackend
                     .AsBuilder()
                             .UseLogging()
                             .UseFunctionInvocation()
-                            .UseDistributedCache()
+                            //.UseDistributedCache()
                             .UseOpenTelemetry(null, sourceName, c => c.EnableSensitiveData = true)
                             .Build(b));
+
+
+            builder.Services.AddHostedService<AiService>();
+            builder.Services.AddSingleton<ITaskQueue>(ctx =>
+            {
+                if (!int.TryParse(builder.Configuration["QueueCapacity"], out var queueCapacity))
+                    queueCapacity = 100;
+                return new DefaultBackgroundTaskQueue(queueCapacity);
+            });
 
             //builder.Services.UseHttpClientMetrics();
             builder.Services.AddHealthChecks()

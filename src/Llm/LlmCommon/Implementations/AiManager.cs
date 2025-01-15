@@ -51,7 +51,7 @@ namespace LlmCommon.Implementations
                     metrics.SetTimeToFirstToken(prevTokenTime);
                     if (regenerateMsgId == null)
                     {
-                        var cmd = new AddMessageCommand(chatId, "");
+                        var cmd = new AddMessageCommand(chatId, item.Text?? "");
                         await cmd.Accept(executor, this);
                         regenerateMsgId = cmd.AddedMessageId;
                     }

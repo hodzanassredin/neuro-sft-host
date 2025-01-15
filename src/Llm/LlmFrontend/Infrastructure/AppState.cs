@@ -43,14 +43,14 @@ namespace LlmFrontend.Infrastructure
         }
 
 
-        public async Task<ChatDto> GetChat(Ids.Id id) {
+        public async Task<ChatDto?> GetChat(Ids.Id id) {
             var chat = loadedChats.SingleOrDefault(x => x.Chat.Id == id);
             if (chat == null) {
                 chat = await handler.HandleQuery(new ChatQuery(id)) as ChatView;
                 loadedChats.Add(chat);
             }
 
-            return chat.Chat;
+            return chat?.Chat;
         }
 
         public void Dispose()
@@ -62,11 +62,23 @@ namespace LlmFrontend.Infrastructure
         {
             if (ev is ChatEvent cev)
             {
-                var accepted = await cev.Accept(chats);
-                foreach (var chat in loadedChats) {
-                    accepted = accepted || await cev.Accept(chat);
-                }
+                
 
+                var accepted = await cev.Accept(chats);
+                if (ev is RemovedChatEvent rce)
+                {
+                    var toRemove  = loadedChats.Single(x=>x.Chat.Id == rce.ChatId);
+                    loadedChats.Remove(toRemove);
+                }
+                else
+                {
+                    foreach (var chat in loadedChats)
+                    {
+                        accepted = accepted || await cev.Accept(chat);
+                    }
+                }
+                
+                
                 if (accepted)
                 {
                     logger.LogInformation($"Recieved event {cev.ToString()}");

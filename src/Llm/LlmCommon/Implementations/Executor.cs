@@ -1,12 +1,13 @@
 ﻿using LlmCommon.Abstractions;
 using LlmCommon.Commands.Chat;
 using LlmCommon.Entities;
+using LlmCommon.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 
 namespace LlmCommon.Implementations
 {
-    public class Executor(IEntityStorage storage, IServiceProvider sp, IUnitOfWork unitOfWork) : IExecutor
+    public class Executor(IEntityStorage storage, IUnitOfWork unitOfWork, ITaskQueue taskQueue) : IExecutor
     {
         public async Task Visit(LeaveCommand cmd, IContext ctx)
         {
@@ -47,7 +48,7 @@ namespace LlmCommon.Implementations
             await storage.Upsert(chat);
             await unitOfWork.StoreAsync();
             if (user.Id != AiManager.aiUser.Id) {
-                await Generate(cmd.ChatId, null);
+                await taskQueue.QueueBackgroundWorkItemAsync(new GenerateResponseTask(cmd.ChatId));
             }
         }
 
@@ -100,14 +101,9 @@ namespace LlmCommon.Implementations
             chat.ChangeMessage(user, cmd.MessageId, "", false);
             await storage.Upsert(chat);
             await unitOfWork.StoreAsync();
-            await Generate(cmd.ChatId, cmd.MessageId);
+            await taskQueue.QueueBackgroundWorkItemAsync(new GenerateResponseTask(cmd.ChatId, cmd.MessageId));
         }
 
-        private async Task Generate(Ids.Id chatId, Ids.Id? messageId)
-        {
-            using var scope = sp.CreateScope();
-            var ai = scope.ServiceProvider.GetRequiredService<AiManager>();
-            await ai.StartGeneration(chatId);
-        }
+        
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace LlmCommon.Transport
 {
@@ -14,14 +11,11 @@ namespace LlmCommon.Transport
 
         public Envelope(Ids.Id corellationId, object obj)
         {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            Payload = JsonSerializer.Serialize(obj, obj.GetType());
-            Type = obj.GetType().FullName!;
             CorellationId = corellationId ?? throw new ArgumentNullException(nameof(corellationId));
+            if (obj != null) {
+                Payload = JsonSerializer.Serialize(obj, obj.GetType());
+                Type = obj.GetType().FullName!;
+            }
         }
 
         public string Payload { get; set; }
@@ -30,6 +24,10 @@ namespace LlmCommon.Transport
 
         public object? Get()
         {
+            if (String.IsNullOrEmpty(Payload)) {
+                return null;
+            }
+
             var type = typeof(Envelope).Assembly.GetType(Type);
             if (type == null) throw new ArgumentOutOfRangeException("type");
             return JsonSerializer.Deserialize(Payload, type);
@@ -37,6 +35,10 @@ namespace LlmCommon.Transport
 
         public T? Get<T>()
         {
+            if (String.IsNullOrEmpty(Payload))
+            {
+                return default;
+            }
             var type = typeof(Envelope).Assembly.GetType(Type);
             if (type == null || !type.IsAssignableTo(typeof(T))) throw new ArgumentOutOfRangeException("type");
             return (T)JsonSerializer.Deserialize(Payload, type);

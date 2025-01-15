@@ -1,4 +1,5 @@
 ﻿@page "/chat"
+@page "/chat/{CurrentChatId}"
 @using LlmCommon
 @using LlmCommon.Abstractions
 @using LlmCommon.Dtos
@@ -17,6 +18,7 @@
 @inject IRequestHandler handler
 @inject IJSRuntime js
 @implements IAsyncDisposable
+@inject NavigationManager Navigation
 
 <PageTitle>Chat</PageTitle>
 
@@ -157,7 +159,7 @@
                                                                 </div>
                                                             </li>
                                                         }
-                                                        bool isSelected = msg.Id == selectedId;
+                                                        bool isSelected = msg.Id == selectedMessageId;
 
                                                         <MessageItem ChatId="@currentChat.Id" Message="msg" IsSelected="@isSelected" OnSelect="@SelectMessage"></MessageItem>
 
@@ -213,10 +215,28 @@
 </section>
 
 @code{
-    private Ids.Id selectedId = Ids.Empty;
+    [Parameter]
+    public string? CurrentChatId { get; set; }
+
+    private Ids.Id selectedMessageId = Ids.Empty;
+
     private void SelectMessage(Ids.Id id) {
-        selectedId = id;
+        selectedMessageId = id;
         StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        if (CurrentChatId != null)
+        {
+            currentChat = await state.GetChat(Ids.Parse(CurrentChatId));
+            if (currentChat == null) { 
+                Navigation.NavigateTo($"chat");
+            }
+        }
+        else { 
+            currentChat = null;
+        }
     }
 
 
@@ -282,7 +302,7 @@
 
     public async Task ChatClicked(ChatDtoBase chat)
     {
-        currentChat = await state.GetChat(chat.Id);
+        Navigation.NavigateTo($"chat/{chat.Id}");
     }
 
     protected override void OnInitialized()
@@ -300,7 +320,8 @@
         {
             if (currentChat != null && !state.ChatsView.Chats.Any(x=>x.Id == currentChat.Id)) {
                 //close chat if it is removed
-                currentChat = null;
+                Navigation.NavigateTo($"chat");
+                return Task.FromResult(true);
             }
 
             StateHasChanged();

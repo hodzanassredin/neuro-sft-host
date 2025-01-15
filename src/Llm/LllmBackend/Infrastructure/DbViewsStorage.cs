@@ -74,5 +74,20 @@ namespace LlmBackend.Infrastructure
                     throw new NotImplementedException();
             };
         }
+
+        public override Task Remove(View view)
+        {
+            switch (view)
+            {
+                case ChatView cv:
+                    DbView toDelete = new DbView() { Id = Keys.ChatKey(cv.Chat.Id) };
+                    context.Views.Entry(toDelete).State = EntityState.Deleted;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            };
+            return Task.CompletedTask;
+            
+        }
     }
 }
