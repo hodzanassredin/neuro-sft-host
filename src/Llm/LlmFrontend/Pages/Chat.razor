@@ -221,7 +221,14 @@
     private Ids.Id selectedMessageId = Ids.Empty;
 
     private void SelectMessage(Ids.Id id) {
-        selectedMessageId = id;
+        if (selectedMessageId == id)
+        {
+            selectedMessageId = Ids.Empty;
+        }
+        else { 
+            selectedMessageId = id;
+        }
+        
         StateHasChanged();
     }
     protected override async Task OnParametersSetAsync()
