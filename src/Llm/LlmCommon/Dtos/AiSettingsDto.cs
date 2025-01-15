@@ -35,5 +35,7 @@
 
         /// <summary>Gets or sets a seed value used by a service to control the reproducibility of results.</summary>
         public long? Seed { get; set; }
+
+        public string? System { get; set; }
     }
 }

@@ -16,6 +16,10 @@
             <label for="temp">FrequencyPenalty</label>
             <InputNumber class="form-control" id="temp" @bind-Value="Settings.FrequencyPenalty" min="-2.0" max="2.0" />
         </div>
+        <div class="form-group">
+            <label for="system">System</label>
+            <InputTextArea class="form-control" id="system" @bind-Value="Settings.System" />
+        </div>
         <button type="submit" class="btn btn-primary">Save</button>
     </EditForm>
 }

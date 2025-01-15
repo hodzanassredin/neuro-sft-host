@@ -18,6 +18,10 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(ChangedMessageEvent ev)
         {
+            if (Chat?.Id != ev.ChatId)
+            {
+                return Task.FromResult(false);
+            }
             var msg = Chat.Messages.Single(x => x.Id == ev.MessageId);
             if (ev.Append)
             {
@@ -47,6 +51,10 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(RemovedMessageEvent ev)
         {
+            if (Chat?.Id != ev.ChatId)
+            {
+                return Task.FromResult(false);
+            }
             Debug.Assert(Chat?.Id == ev.ChatId);
             var msg = Chat.Messages.Single(x => x.Id == ev.MessageId);
 
@@ -56,6 +64,10 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(UserJoinEvent ev)
         {
+            if (Chat?.Id != ev.ChatId)
+            {
+                return Task.FromResult(false);
+            }
             Debug.Assert(Chat?.Id == ev.ChatId);
             Chat.Subscribers.Add(ev.User);
             return Task.FromResult(true);
@@ -63,6 +75,10 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(UserLeaveEvent ev)
         {
+            if (Chat?.Id != ev.ChatId)
+            {
+                return Task.FromResult(false);
+            }
             Debug.Assert(Chat?.Id == ev.ChatId);
             var exUser = Chat.Subscribers.Single(x=>x.Id == ev.User.Id);
             Chat.Subscribers.Remove(exUser);
@@ -71,6 +87,10 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(ChangedChatEvent ev)
         {
+            if (Chat?.Id != ev.ChatId)
+            {
+                return Task.FromResult(false);
+            }
             Debug.Assert(Chat?.Id == ev.ChatId);
             if (ev.Name != null)
             {

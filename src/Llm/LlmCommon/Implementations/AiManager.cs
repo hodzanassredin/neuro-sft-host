@@ -35,9 +35,8 @@ namespace LlmCommon.Implementations
 
             var chat = (await entStorage.Load<ChatEntity>(chatId)).Dto;
 
-            var msgs = await MapMsgs(chat, regenerateMsgId, system);
+            var msgs = await MapMsgs(chat, regenerateMsgId, system ?? chat.AiSettings.System);
             var opts = GetOps(chat.AiSettings);
-            
             //var resp = client.CompleteAsync(msgs, opts, cts.Token);
             var stream = client.CompleteStreamingAsync(msgs, opts);
 
