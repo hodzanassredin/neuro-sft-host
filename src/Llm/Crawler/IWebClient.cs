@@ -4,6 +4,7 @@ namespace Crawler
     public interface IWebClient
     {
         Task<IParser> Crawl(string path);
+        Task<IParser?> CrawlIgnoreError(string path);
     }
 
     public class Client : IWebClient
@@ -28,6 +29,18 @@ namespace Crawler
 
             var resp = await response.Content.ReadAsStringAsync();
             return new Parser(resp);
+        }
+
+        public async Task<IParser?> CrawlIgnoreError(string path)
+        {
+            try
+            {
+                return await Crawl(path);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

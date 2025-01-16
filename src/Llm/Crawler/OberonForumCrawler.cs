@@ -40,10 +40,13 @@ namespace Crawler
         public async IAsyncEnumerable<Message> Crawl() {
             for (int itemNumber = 1; itemNumber < 123; itemNumber++)
             {
-                var itemFirstPage = await client.Crawl($"/viewforum.php?f={itemNumber}");
-                var itemName = itemFirstPage.GetTexts("//*[@id=\"pageheader\"]/h2/a").First();
-
-                var tmp = itemFirstPage.GetTexts("//*[@id=\"pagecontent\"]/table[1]/tr/td[3]", decode:false).First();
+                var forumStartPage = await client.CrawlIgnoreError($"/viewforum.php?f={itemNumber}");
+                if (forumStartPage == null) {
+                    continue;
+                }
+                var itemName = forumStartPage.GetTexts("//*[@id=\"pageheader\"]/h2/a").FirstOrDefault();
+                if (itemName == default) continue;
+                var tmp = forumStartPage.GetTexts("//*[@id=\"pagecontent\"]/table[1]/tr/td[3]", decode:false).First();
                 var tmp2 = topicCountRegex.Match(tmp).Groups[1].Value;
 
                 int topicCount = int.Parse(tmp2);
