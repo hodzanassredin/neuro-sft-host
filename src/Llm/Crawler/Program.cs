@@ -10,7 +10,7 @@ namespace Crawler
             Console.OutputEncoding = Encoding.UTF8;
             var f = new OberonForumCrawler();
 
-            string filePath = "frorum.json";
+            string filePath = "forum.json";
 
             JsonSerializerOptions jso = new JsonSerializerOptions();
             jso.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;

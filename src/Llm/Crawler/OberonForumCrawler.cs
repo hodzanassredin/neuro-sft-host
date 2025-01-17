@@ -67,7 +67,7 @@ namespace Crawler
                         {
                             var topicPage = await client.Crawl($"/viewtopic.php?f={itemNumber}&t={topicNumber}&start={messagesStart}");
                             var messageAuthors = topicFirstPage.GetTexts("//b[contains(@class, \"postauthor\")]");
-                            var messageContents = topicFirstPage.GetHtmls("//div[@class=\"postbody\"]");
+                            var messageContents = topicFirstPage.GetMarkdowns("//div[@class=\"postbody\"]");
                             var messages = messageAuthors.Zip(messageContents).ToList();
                             for (int msgShift = 0; msgShift < messages.Count; msgShift++)
                             {

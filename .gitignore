@@ -300,3 +300,6 @@ _NCrunch*
 data/
 models/
 .aider*
+/datasets/oberon
+/learn/notebooks/.Trash-0/info
+/learn/env
