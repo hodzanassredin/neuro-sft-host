@@ -10,7 +10,7 @@ namespace DatasetGenerator
     {
         private static readonly string DatasetsPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory,"../../../../../../datasets"));
 
-        const string model = "qwen2.5-coder:3b";
+        const string model = "qwen2.5-coder:7b";
         static string GetSub(string path, string dir)
         {
             Uri fromUri = new Uri(path);
@@ -22,6 +22,8 @@ namespace DatasetGenerator
         }
         static async Task Main(string[] args)
         {
+            var outPath = Path.Combine(DatasetsPath, "oberon", $"questions-{model}-{DateTime.UtcNow.ToString("yyyy-dd-M--HH-mm-ss")}.json");
+
             Console.OutputEncoding = Encoding.UTF8;
             JsonSerializerOptions jso = new JsonSerializerOptions();
             jso.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
@@ -35,14 +37,18 @@ namespace DatasetGenerator
             string subFolder = "./Docu";
             var texts = new RecursiveDirDataset(Path.Combine(dir, subFolder));
 
-            await using (var fileStream = new FileStream(Path.Combine(DatasetsPath, $"./oberon/questions-{model}.json"), FileMode.Create, FileAccess.Write))
+            await using (var fileStream = new FileStream(outPath, FileMode.Create, FileAccess.Write))
             await using (var writer = new StreamWriter(fileStream, Encoding.UTF8))
             {
                 foreach (var textDto in texts.GetTexts())
                 {
+                    var sub = GetSub(textDto.TextSource, dir + Path.DirectorySeparatorChar);
+
+
                     var chunks = chunker.GetChunks(textDto.Text);
                     foreach (var chunk in chunks) {
-                        var dialogs = await gen.GetDialogs(chunk, GetSub(textDto.TextSource, dir + Path.DirectorySeparatorChar));
+                        var dialogs = await gen.GetDialogs(chunk, sub);
+
                         foreach (var dialog in dialogs)
                         {
                             Console.Write(dialog.Source + ": ");
@@ -53,9 +59,16 @@ namespace DatasetGenerator
                             string jsonLine = JsonSerializer.Serialize(dialog, jso);
                             await writer.WriteLineAsync(jsonLine);
                         }
+                        writer.Flush();
                     }
+                    //var tasks = chunks.Select(chunk => gen.GetDialogs(chunk, sub)).ToList();
+                    //await Task.WhenAll(tasks);
+                    //var results = tasks.Select(x => x.Result);
+
 
                     
+
+
                 }
             }
         }
