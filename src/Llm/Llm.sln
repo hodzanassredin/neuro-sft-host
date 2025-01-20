@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmCommon", "LlmCommon\LlmC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crawler", "Crawler\Crawler.csproj", "{94FF8CD5-67CF-4C4D-A4FF-D29EDCCB8854}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatasetGenerator", "DatasetGenerator\DatasetGenerator.csproj", "{C0923F1E-48B2-4B23-AB00-9B5BE12095C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{94FF8CD5-67CF-4C4D-A4FF-D29EDCCB8854}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94FF8CD5-67CF-4C4D-A4FF-D29EDCCB8854}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94FF8CD5-67CF-4C4D-A4FF-D29EDCCB8854}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0923F1E-48B2-4B23-AB00-9B5BE12095C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0923F1E-48B2-4B23-AB00-9B5BE12095C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0923F1E-48B2-4B23-AB00-9B5BE12095C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0923F1E-48B2-4B23-AB00-9B5BE12095C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
