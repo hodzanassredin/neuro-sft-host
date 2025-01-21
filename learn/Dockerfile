@@ -1,4 +1,4 @@
-FROM huggingface/transformers-pytorch-gpu
+FROM huggingface/peft-gpu-bnb-latest:latest
 
 COPY ./requirements.txt /app/requirements.txt
 WORKDIR /app

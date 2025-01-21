@@ -20,8 +20,8 @@ services:
             max-file: "3"
     volumes:
           - ${HF_HOME}:/hf
-          - ../models:/app//models
-          - ../datasets:/app//datasets
+          - ../models:/app/models
+          - ../datasets:/app/datasets
           - ./notebooks:/app/notebooks
     deploy:
       resources:
