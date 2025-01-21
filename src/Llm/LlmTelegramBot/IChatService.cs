@@ -1,27 +1,31 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace LllmTelegramBot
+namespace LlmTelegramBot
 {
     public interface IChatService
     {
         void SaveMessage(long chatId, string senderName, string message);
         List<string> LoadMessages(long chatId);
         void SaveBotMessage(long chatId, string message);
+        void ClearChatHistory(long chatId);
     }
 
     public class ChatService : IChatService
     {
+        const string folder = "chats";
+
         private readonly ILogger<ChatService> _logger;
         private readonly object _fileLock = new object();
 
         public ChatService(ILogger<ChatService> logger)
         {
             _logger = logger;
+            Directory.CreateDirectory(folder);
         }
 
         public void SaveMessage(long chatId, string senderName, string message)
         {
-            var fileName = $"chat_{chatId}.txt";
+            string fileName = GetPath(chatId);
             lock (_fileLock)
             {
                 File.AppendAllText(fileName, $"{DateTime.Now}: {senderName}: {message}\n");
@@ -29,9 +33,14 @@ namespace LllmTelegramBot
             _logger.LogInformation("Saved message from {SenderName} in chat {ChatId}", senderName, chatId);
         }
 
+        private static string GetPath(long chatId)
+        {
+            return $"{folder}/chat_{chatId}.txt";
+        }
+
         public List<string> LoadMessages(long chatId)
         {
-            var fileName = $"chat_{chatId}.txt";
+            var fileName = GetPath(chatId);
             lock (_fileLock)
             {
                 if (!File.Exists(fileName))
@@ -47,12 +56,25 @@ namespace LllmTelegramBot
 
         public void SaveBotMessage(long chatId, string message)
         {
-            var fileName = $"chat_{chatId}.txt";
+            var fileName = GetPath(chatId);
             lock (_fileLock)
             {
                 File.AppendAllText(fileName, $"{DateTime.Now}: Bot: {message}\n");
             }
             _logger.LogInformation("Saved bot message in chat {ChatId}", chatId);
+        }
+
+        public void ClearChatHistory(long chatId)
+        {
+            var fileName = $"chat_{chatId}.txt";
+            lock (_fileLock)
+            {
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                }
+            }
+            _logger.LogInformation("Cleared chat history for chat {ChatId}", chatId);
         }
     }
 }

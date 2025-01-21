@@ -1,16 +1,14 @@
-﻿using Telegram.Bot.Polling;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot;
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Serilog.Core;
+using Microsoft.Extensions.Configuration;
 
-namespace LllmTelegramBot
+namespace LlmTelegramBot
 {
+    //dotnet user-secrets init
+    //dotnet user-secrets set "BOT_TOKEN" "XXX"
 
     public class Program
     {
@@ -37,7 +35,9 @@ namespace LllmTelegramBot
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                
+                .ConfigureAppConfiguration(builder=>{
+                    builder.AddUserSecrets(typeof(Program).Assembly);
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging(builder =>
@@ -48,7 +48,7 @@ namespace LllmTelegramBot
                     services.AddHostedService<Worker>();
                     services.AddSingleton<IChatService, ChatService>();
                     services.AddSingleton<ILllmService, LlmService>();
-                    services.AddSingleton(provider => new TelegramBotClient("BOT_TOKEN"));
+                    services.AddSingleton(provider => new TelegramBotClient(hostContext.Configuration["BOT_TOKEN"]!));
                 });
     }
 }
