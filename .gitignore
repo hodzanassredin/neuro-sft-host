@@ -305,3 +305,5 @@ models/
 /learn/env
 /learn/notebooks/outputs/*
 learn/notebooks/BB/results/*
+learn/notebooks/.Trash-0/*
+learn/notebooks/BB/results*/*
