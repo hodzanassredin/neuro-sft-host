@@ -5,8 +5,8 @@
         private const string model = "/models/toxic_sft_cotype/merged";
 
         public static readonly AiSettingsDto Default = new AiSettingsDto(model) {
-            MaxOutputTokens = 150,
-            Temperature = 1f,
+            MaxOutputTokens = 1024,
+            Temperature = 0.4f,
             FrequencyPenalty = 0.01f,
             PresencePenalty = 0,
         };

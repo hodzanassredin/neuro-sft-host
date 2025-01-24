@@ -2,7 +2,6 @@ using LlmBackend.Auth;
 using LlmBackend.Hubs;
 using LlmBackend.Infrastructure;
 using LlmCommon.Abstractions;
-using LlmCommon.Entities;
 using LlmCommon.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -11,13 +10,10 @@ using Microsoft.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.Extensions.AI;
 using OpenAI;
-
 using System.ClientModel;
-
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LlmBackend
 {
@@ -25,13 +21,10 @@ namespace LlmBackend
     {
 
         
-        private const string ModelId = "/models/toxic_sft_cotype/merged";
+        private const string ModelId = "/models/bb_ru_Cotype-Nano_20250123-100550-merged";
 
         public static async Task Main(string[] args)
         {
-            
-
-
             var builder = WebApplication.CreateBuilder(args);
 
 

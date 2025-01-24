@@ -54,7 +54,7 @@ services:
             - 9001:8000
         #ipc: host
         image: vllm/vllm-openai:latest
-        command: --model /models/toxic_sft_cotype/merged
+        command: --model /models/bb_ru_Cotype-Nano_20250123-100550-merged
         deploy:
           resources:
             reservations:
