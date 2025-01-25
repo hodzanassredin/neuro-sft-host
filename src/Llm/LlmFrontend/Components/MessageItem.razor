@@ -11,7 +11,8 @@
 
     var cl = isFromCurrent ? "sender" : "repaly";
     <li class="@cl" @onclick="@OnClick">
-        <p>@Message.Text &nbsp;
+        <p style="white-space: pre-wrap;text-align:left;">
+            @Message.Text &nbsp;
             @if (IsSelected)
             {
                     @if (Message.User.Id == AiManager.aiUser.Id)

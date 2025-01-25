@@ -21,7 +21,7 @@ namespace LlmBackend
     {
 
         
-        private const string ModelId = "/models/bb_ru_Cotype-Nano_20250123-100550-merged";
+        private const string ModelId = "cp-lora";
 
         public static async Task Main(string[] args)
         {

@@ -99,11 +99,17 @@ namespace LlmCommon.Implementations
                 Temperature = settings.Temperature,
                 MaxOutputTokens = settings.MaxOutputTokens,
                 TopP = settings.TopP,
+                //TopK = settings.TopK,
                 FrequencyPenalty = settings.FrequencyPenalty,
                 PresencePenalty = settings.PresencePenalty,
                 ResponseFormat = ChatResponseFormatText.Text,
                 ModelId = settings.Model,
                 Seed = settings.Seed,
+                AdditionalProperties = new AdditionalPropertiesDictionary{
+                    ["repetition_penalty"] = settings.RepetitionPenalty,
+                    ["max_tokens"] = settings.MaxTokens,
+                    ["top_k"] = settings.TopK
+                }
             };
         }
 
