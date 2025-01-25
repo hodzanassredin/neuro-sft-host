@@ -13,6 +13,8 @@ Just an exam work for llm sft and hosting
 
 [Синтезатор вопросов и ответов из документации](./src/Llm/DatasetGenerator/)
 
+[Конвертер системы документации и кода BlackBox в txt файлы для датасета](./datasets/convert_bb_dir_to_txt_dir.py)
+
 # Обучение
 Используется базовая модель CotypeNano 1.5B. И обучается Qlora через SFT.
 
