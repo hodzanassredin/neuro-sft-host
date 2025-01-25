@@ -48,13 +48,18 @@ services:
     #                       capabilities: [gpu]
 
     vllm-server:
+        environment:
+          - NVIDIA_VISIBLE_DEVICES=all
+          - HF_HOME=/hf/
         volumes:
+            - ${HF_HOME}:/hf
             - ./models:/models
+            - ./vllmcache:/vllmcache
         ports:
             - 9001:8000
         #ipc: host
         image: vllm/vllm-openai:latest
-        command: --model /models/bb_ru_Cotype-Nano_20250123-100550-merged
+        command: --enable-lora --model MTSAIR/Cotype-Nano --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --qlora-adapter-name-or-path /models/bb_ru_Cotype-Nano_20250123-100550/  
         deploy:
           resources:
             reservations:
