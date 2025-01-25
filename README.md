@@ -15,7 +15,7 @@ Just an exam work for llm sft and hosting
 
 [Конвертер системы документации и кода BlackBox в txt файлы для датасета](./datasets/convert_bb_dir_to_txt_dir.py)
 
-[Опубликованный датасет](https://huggingface.co/datasets/hodza/Informatika21CP)
+[Опубликованный датасет](https://huggingface.co/datasets/hodza/BlackBox.Shkola.2014)
 
 # Обучение
 Используется базовая модель CotypeNano 1.5B. И обучается Qlora через SFT.
