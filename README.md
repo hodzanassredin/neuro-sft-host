@@ -1,6 +1,9 @@
 # neuro-sft-host
 Just an exam work for llm sft and hosting
 
+# TODO
+не решена проблема со стабильностью ответов. Надо или обучить модель большего размера. Это пока мешает деплою бота и финальной версии.
+
 
 [Презентация](./docs/presentation.md)
 
