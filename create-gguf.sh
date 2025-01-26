@@ -1,0 +1,1 @@
+python3 ../llama.cpp/convert_hf_to_gguf.py ./models/BlackBox-Coder-3B-merged/ --outfile ./models/BlackBox-Coder-3B-Q8.gguf --outtype q8_0

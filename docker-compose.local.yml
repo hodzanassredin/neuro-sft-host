@@ -46,7 +46,25 @@ services:
     #                     - driver: nvidia
     #                       count: 1
     #                       capabilities: [gpu]
-
+    telegrambot:
+      environment:
+        - OPENAI_ENDPOINT=http://vllm-server:8000/v1
+        - OPENAI_KEY=nokey
+        - BOT_TOKEN=${BOT_TOKEN}
+        - CHATS_FOLDER=${CHATS_FOLDER}
+      depends_on:
+        - vllm-server
+      build:
+        context:  ./src/Llm/LlmTelegramBot
+        dockerfile: Dockerfile
+      volumes:
+       - ./chats:/chats
+      restart: always
+      logging:
+       options:
+         max-size: "10m"
+         max-file: "3"
+         
     vllm-server:
         environment:
           - NVIDIA_VISIBLE_DEVICES=all
