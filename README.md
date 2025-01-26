@@ -2,10 +2,18 @@
 Just an exam work for llm sft and hosting
 
 # TODO
-не решена проблема со стабильностью ответов. Надо возможно обучить модель большего размера. Это пока мешает деплою бота и финальной версии.
 
+Деплой бота и UI.
+
+# Результаты
 
 [Презентация](./docs/presentation.md)
+
+[Опубликованный датасет](https://huggingface.co/datasets/hodza/BlackBox.Shkola.2014)
+
+[Опубликованная модель](https://huggingface.co/hodza/BlackBox-Coder-3B)
+
+[@blackbox_cp_helper_bot](https://t.me/blackbox_cp_helper_bot)
 
 # Сбор датасетов
 
@@ -15,22 +23,16 @@ Just an exam work for llm sft and hosting
 
 [Конвертер системы документации и кода BlackBox в txt файлы для датасета](./datasets/convert_bb_dir_to_txt_dir.py)
 
-[Опубликованный датасет](https://huggingface.co/datasets/hodza/BlackBox.Shkola.2014)
+
 
 # Обучение
 Используется базовая модель CotypeNano 1.5B. И обучается Qlora через SFT.
 
 [Ноутбук](./learn/notebooks/BB/pretrain.ipynb)
 
-
-
 # Бот для телеграм
 
-Пока не подключен к ллм
-
 [Код](./src/Llm/LlmTelegramBot/)
-
-[@blackbox_cp_helper_bot](https://t.me/blackbox_cp_helper_bot)
 
 # UI
 
