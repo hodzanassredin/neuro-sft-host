@@ -15,6 +15,11 @@ Just an exam work for llm sft and hosting
 
 [@blackbox_cp_helper_bot](https://t.me/blackbox_cp_helper_bot)
 
+# Ollama
+
+ollama run hodza/BlackBox-Coder-3B
+gguf q8 модель работает хуже чем родная hf модель.
+
 # Сбор датасетов
 
 [Кравлер для форума](./src/Llm/Crawler)
