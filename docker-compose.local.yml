@@ -59,7 +59,7 @@ services:
             - 9001:8000
         #ipc: host
         image: vllm/vllm-openai:latest
-        command: --enable-lora --model MTSAIR/Cotype-Nano --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=/models/bb_ru_Cotype-Nano_20250123-100550/  
+        command: --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
         deploy:
           resources:
             reservations:

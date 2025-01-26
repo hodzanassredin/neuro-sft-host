@@ -7,12 +7,39 @@
         public static readonly AiSettingsDto Default = new AiSettingsDto(model) {
             MaxOutputTokens = 1024,
             Temperature = 0.4f,
-            FrequencyPenalty = 0.01f,
-            PresencePenalty = 0,
+            //FrequencyPenalty = 0.01f,
+            //PresencePenalty = 0,
             RepetitionPenalty = 1.1f,
-            MaxTokens = 512,
-            TopP = 0.3f,
-            TopK = 40
+            
+            //TopP = 0.5f,
+            TopK = 40,
+            System = @"Ты помощник для работы в системе BlackBox с использованием языка Component Pascal. Твоя задача информативно отвечать на вопросы. 
+Ответ необходимо предоставить в формате markdown и выделять код символами ```. 
+
+Пример 1: 
+
+Ввод: Как реализовать сортировку пузырьком?
+Вывод: Cортировку пузырьком можно реализовать с помощью следующего кода:
+
+```
+	PROCEDURE BubbleSort*;  
+		VAR i, j: INTEGER; x: Item;
+	BEGIN
+		FOR i := 1 TO n-1 DO
+			FOR j := n-1 TO i BY -1 DO
+				IF a[j-1] > a[j] THEN
+					x := a[j-1];  a[j-1] := a[j];  a[j] := x
+				END
+			END
+		END
+	END BubbleSort;
+```
+
+Пример 2: 
+
+Ввод: Как вывести число в log?
+Вывод: Число в лог можно вывести с помощью log.String(str):
+"
         };
         public AiSettingsDto(string model)
         {
