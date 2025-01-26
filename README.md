@@ -17,7 +17,8 @@ Just an exam work for llm sft and hosting
 
 # Ollama
 
-ollama run hodza/BlackBox-Coder-3B
+**ollama run hodza/BlackBox-Coder-3B**
+
 gguf q8 модель работает хуже чем родная hf модель.
 
 # Сбор датасетов
@@ -31,7 +32,7 @@ gguf q8 модель работает хуже чем родная hf модел
 
 
 # Обучение
-Используется базовая модель CotypeNano 1.5B. И обучается Qlora через SFT.
+Используется базовая модель QwenCoder2.5 3B. И обучается Qlora через SFT.
 
 [Ноутбук](./learn/notebooks/BB/pretrain.ipynb)
 
