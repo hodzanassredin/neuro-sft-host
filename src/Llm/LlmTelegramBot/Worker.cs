@@ -73,6 +73,11 @@ namespace LlmTelegramBot
                     // Notify the user that the chat history has been cleared
                     await botClient.SendMessage(chatId, "Chat history has been cleared.", cancellationToken: cancellationToken);
                 }
+                if (text.Equals("/start", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Notify the user that the chat history has been cleared
+                    await botClient.SendMessage(chatId, "Привет. Я помощник по системе BlackBox. Задайте ваш вопрос.", cancellationToken: cancellationToken);
+                }
                 else
                 {
                     // Save the message to a file

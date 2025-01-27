@@ -3,7 +3,7 @@ Just an exam work for llm sft and hosting
 
 # TODO
 
-Деплой бота и UI.
+Code cleanup and makefile for tasks. Rewrite notebooks to python scripts.
 
 # Результаты
 
@@ -17,7 +17,9 @@ Just an exam work for llm sft and hosting
 
 # Ollama
 
-**ollama run hodza/BlackBox-Coder-3B**
+**ollama run hodza/BlackBox-Coder-3B:Q8**
+
+**ollama run hodza/BlackBox-Coder-3B:F32**
 
 gguf q8 модель работает хуже чем родная hf модель.
 
@@ -30,9 +32,8 @@ gguf q8 модель работает хуже чем родная hf модел
 [Конвертер системы документации и кода BlackBox в txt файлы для датасета](./datasets/convert_bb_dir_to_txt_dir.py)
 
 
-
 # Обучение
-Используется базовая модель QwenCoder2.5 3B. И обучается Qlora через SFT.
+Используется базовая модель QwenCoder2.5-Instruct 3B. И обучается Qlora через SFT.
 
 [Ноутбук](./learn/notebooks/BB/pretrain.ipynb)
 

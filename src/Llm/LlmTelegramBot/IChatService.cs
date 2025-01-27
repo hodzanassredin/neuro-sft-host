@@ -66,12 +66,12 @@ namespace LlmTelegramBot
 
         public void ClearChatHistory(long chatId)
         {
-            var fileName = $"chat_{chatId}.txt";
+            var fileName = GetPath(chatId);
             lock (_fileLock)
             {
                 if (File.Exists(fileName))
                 {
-                    File.Delete(fileName);
+                    File.Move(fileName, $"{fileName}.bkp.{DateTime.UtcNow:yyyy-dd-M--HH-mm-ss}");
                 }
             }
             _logger.LogInformation("Cleared chat history for chat {ChatId}", chatId);

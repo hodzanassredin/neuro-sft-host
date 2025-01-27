@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using OpenAI;
 using System.ClientModel;
 using Microsoft.Extensions.AI;
+using System.Text;
 
 namespace LlmTelegramBot
 {
@@ -17,6 +18,7 @@ namespace LlmTelegramBot
     {
         public static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .CreateLogger();

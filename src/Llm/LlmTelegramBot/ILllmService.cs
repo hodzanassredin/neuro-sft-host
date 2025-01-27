@@ -23,7 +23,8 @@ namespace LlmTelegramBot
         {
             Temperature = 0.4f,
             TopP = 0.3f,
-            ResponseFormat = ChatResponseFormatText.Text
+            ResponseFormat = ChatResponseFormatText.Text,
+            MaxOutputTokens = 1024
         };
         public async Task<string> Generate(List<string> msgs)
         {
