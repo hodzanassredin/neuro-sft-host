@@ -49,9 +49,9 @@ namespace LlmTelegramBot
                         builder.SetMinimumLevel(LogLevel.Trace);
                         builder.AddSerilog(logger: Log.Logger, dispose: true);
                     });
-
+                    var llmEndpoint = hostContext.Configuration["OPENAI_ENDPOINT"] ?? "http://127.0.0.1:9001/v1";
                     services.AddChatClient(b =>
-                new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(hostContext.Configuration["OpenAiEndpoint"]) })
+                new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llmEndpoint) })
                     .AsChatClient("cp-lora")
                     .AsBuilder()
                             .UseLogging()

@@ -19,10 +19,16 @@ namespace LlmTelegramBot
         {
             this.client = client;
         }
+        ChatOptions chatOptions = new ChatOptions()
+        {
+            Temperature = 0.4f,
+            TopP = 0.3f,
+            ResponseFormat = ChatResponseFormatText.Text
+        };
         public async Task<string> Generate(List<string> msgs)
         {
             var inpmsgs = await MapMsgs(msgs, System);
-            var res = await this.client.CompleteAsync(inpmsgs);
+            var res = await this.client.CompleteAsync(inpmsgs, chatOptions);
             return res.Message.Text??"";
         }
 
