@@ -4,6 +4,9 @@ using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using OpenAI;
+using System.ClientModel;
+using Microsoft.Extensions.AI;
 
 namespace LlmTelegramBot
 {
@@ -37,6 +40,7 @@ namespace LlmTelegramBot
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration(builder=>{
                     builder.AddUserSecrets(typeof(Program).Assembly);
+                    builder.AddEnvironmentVariables();
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
@@ -45,6 +49,16 @@ namespace LlmTelegramBot
                         builder.SetMinimumLevel(LogLevel.Trace);
                         builder.AddSerilog(logger: Log.Logger, dispose: true);
                     });
+
+                    services.AddChatClient(b =>
+                new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(hostContext.Configuration["OpenAiEndpoint"]) })
+                    .AsChatClient("cp-lora")
+                    .AsBuilder()
+                            .UseLogging()
+                            .UseFunctionInvocation()
+                            //.UseDistributedCache()
+                            //.UseOpenTelemetry(null, sourceName, c => c.EnableSensitiveData = true)
+                            .Build(b));
                     services.AddHostedService<Worker>();
                     services.AddSingleton<IChatService, ChatService>();
                     services.AddSingleton<ILllmService, LlmService>();

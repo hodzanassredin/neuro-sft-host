@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using Microsoft.Extensions.AI;
 namespace LlmTelegramBot
 {
     public interface ILllmService
@@ -13,12 +8,40 @@ namespace LlmTelegramBot
 
     public class LlmService : ILllmService
     {
+        private readonly string System = @"
+Ты помощник для работы в системе BlackBox с использованием языка Component Pascal. Твоя задача информативно отвечать на вопросы. 
+Ответ необходимо предоставить в формате markdown и выделять код символами ```. 
+        ";
+
+        private readonly IChatClient client;
+
+        public LlmService(IChatClient client)
+        {
+            this.client = client;
+        }
         public async Task<string> Generate(List<string> msgs)
         {
-            // Implement your LLM generation logic here
-            // For example, you can call an external API or use a local model
-            // This is a placeholder implementation
-            return "Generated response based on the messages.";
+            var inpmsgs = await MapMsgs(msgs, System);
+            var res = await this.client.CompleteAsync(inpmsgs);
+            return res.Message.Text??"";
+        }
+
+        private async Task<List<ChatMessage>> MapMsgs(IEnumerable<string> msgsRaw, string? system)
+        {
+            var msgs = msgsRaw.Select(x => new ChatMessage()
+            {
+                Text = x,
+                Role = ChatRole.User
+            }).ToList();
+            if (!String.IsNullOrWhiteSpace(system))
+            {
+                msgs.Insert(0, new ChatMessage
+                {
+                    Role = ChatRole.System,
+                    Text = system,
+                });
+            }
+            return msgs;
         }
     }
 }
