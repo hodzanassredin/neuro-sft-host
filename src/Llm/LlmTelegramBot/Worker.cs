@@ -49,7 +49,7 @@ namespace LlmTelegramBot
             _logger.LogInformation("Press [Enter] to exit.");
             Console.ReadLine();
         }
-
+        
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Type != UpdateType.Message && update.Type != UpdateType.CallbackQuery)
@@ -81,7 +81,7 @@ namespace LlmTelegramBot
                 else
                 {
                     // Save the message to a file
-                    _chatService.SaveMessage(chatId, senderName, text);
+                    _chatService.SaveMessage(chatId, new Message { PublicationTime = DateTime.UtcNow, Author = senderName, MessageText = text });
 
                     // Load all messages from the file
                     var allMessages = _chatService.LoadMessages(chatId);
@@ -102,7 +102,7 @@ namespace LlmTelegramBot
                     await botClient.SendMessage(chatId, response, replyMarkup: replyMarkup, cancellationToken: cancellationToken);
 
                     // Save the bot's response to the file with a special tag
-                    _chatService.SaveBotMessage(chatId, response);
+                    _chatService.SaveMessage(chatId, new Message { PublicationTime = DateTime.UtcNow, Author = Consts.botName, MessageText = response});
                 }
             }
             //else if (update.Type == UpdateType.CallbackQuery)

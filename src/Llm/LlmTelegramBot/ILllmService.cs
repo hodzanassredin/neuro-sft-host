@@ -3,7 +3,7 @@ namespace LlmTelegramBot
 {
     public interface ILllmService
     {
-        Task<string> Generate(List<string> msgs);
+        Task<string> Generate(List<Message> msgs);
     }
 
     public class LlmService : ILllmService
@@ -26,19 +26,19 @@ namespace LlmTelegramBot
             ResponseFormat = ChatResponseFormatText.Text,
             MaxOutputTokens = 1024
         };
-        public async Task<string> Generate(List<string> msgs)
+        public async Task<string> Generate(List<Message> msgs)
         {
             var inpmsgs = await MapMsgs(msgs, System);
             var res = await this.client.CompleteAsync(inpmsgs, chatOptions);
             return res.Message.Text??"";
         }
 
-        private async Task<List<ChatMessage>> MapMsgs(IEnumerable<string> msgsRaw, string? system)
+        private async Task<List<ChatMessage>> MapMsgs(IEnumerable<Message> msgsRaw, string? system)
         {
             var msgs = msgsRaw.Select(x => new ChatMessage()
             {
-                Text = x,
-                Role = ChatRole.User
+                Text = x.MessageText,
+                Role = x.Author == Consts.botName ? ChatRole.Assistant : ChatRole.User
             }).ToList();
             if (!String.IsNullOrWhiteSpace(system))
             {

@@ -47,8 +47,6 @@ services:
     #                       count: 1
     #                       capabilities: [gpu]
     telegrambot:
-      profiles:
-        - donotstart
       environment:
         - OPENAI_ENDPOINT=http://vllm-server:8000/v1
         - OPENAI_KEY=nokey
@@ -58,7 +56,7 @@ services:
         - vllm-server
       build:
         context:  ./src/Llm/
-        dockerfile: LlmTelegramBot/Dockerfile
+        dockerfile: ./LlmTelegramBot/Dockerfile
       volumes:
        - ./chats:/chats
       restart: always
