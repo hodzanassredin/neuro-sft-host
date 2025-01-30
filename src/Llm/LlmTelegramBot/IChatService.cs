@@ -25,14 +25,16 @@ namespace LlmTelegramBot
         };
 
 
-        const string folder = "chats";
+        
 
         private readonly ILogger<ChatService> _logger;
+        private readonly string folder;
         private readonly object _fileLock = new object();
 
-        public ChatService(ILogger<ChatService> logger)
+        public ChatService(ILogger<ChatService> logger, string folder)
         {
             _logger = logger;
+            this.folder = folder;
             Directory.CreateDirectory(folder);
         }
 
@@ -47,7 +49,7 @@ namespace LlmTelegramBot
             _logger.LogInformation("Saved message from {SenderName} in chat {ChatId}", message.Author, chatId);
         }
 
-        private static string GetPath(long chatId)
+        private string GetPath(long chatId)
         {
             return $"{folder}/chat_{chatId}.txt";
         }

@@ -52,17 +52,18 @@ namespace LlmTelegramBot
                         builder.AddSerilog(logger: Log.Logger, dispose: true);
                     });
                     var llmEndpoint = hostContext.Configuration["OPENAI_ENDPOINT"] ?? "http://127.0.0.1:9001/v1";
+                    var chatsFolder = hostContext.Configuration["CHATS_FOLDER"] ?? "chats";
                     services.AddChatClient(b =>
-                new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llmEndpoint) })
-                    .AsChatClient("cp-lora")
-                    .AsBuilder()
+                         new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llmEndpoint) })
+                            .AsChatClient("cp-lora")
+                            .AsBuilder()
                             .UseLogging()
                             .UseFunctionInvocation()
                             //.UseDistributedCache()
                             //.UseOpenTelemetry(null, sourceName, c => c.EnableSensitiveData = true)
                             .Build(b));
                     services.AddHostedService<Worker>();
-                    services.AddSingleton<IChatService, ChatService>();
+                    services.AddSingleton<IChatService, ChatService>(provider => new ChatService(provider.GetRequiredService<ILogger<ChatService>>(), chatsFolder!));
                     services.AddSingleton<ILllmService, LlmService>();
                     services.AddSingleton(provider => new TelegramBotClient(hostContext.Configuration["BOT_TOKEN"]!));
                 });
