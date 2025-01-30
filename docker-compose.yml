@@ -98,7 +98,7 @@ services:
         - 9001:8000
     #ipc: host
     image: vllm/vllm-openai:latest
-    command: --model /models/toxic_sft_cotype/merged
+    command: --gpu-memory-utilization 0.5 --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
     deploy:
       resources:
         reservations:
