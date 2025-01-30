@@ -308,3 +308,5 @@ learn/notebooks/BB/results/*
 learn/notebooks/.Trash-0/*
 learn/notebooks/BB/results*/*
 vllmcache/*
+learn/notebooks/pdf_files*/
+learn/notebooks/txt_files*/
