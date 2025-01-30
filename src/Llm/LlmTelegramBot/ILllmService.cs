@@ -21,7 +21,7 @@ namespace LlmTelegramBot
         }
         ChatOptions chatOptions = new ChatOptions()
         {
-            Temperature = 0.4f,
+            Temperature = 0.1f,
             TopP = 0.3f,
             ResponseFormat = ChatResponseFormatText.Text,
             MaxOutputTokens = 1024

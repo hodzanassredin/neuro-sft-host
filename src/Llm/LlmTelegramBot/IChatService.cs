@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace LlmTelegramBot
 {
@@ -12,6 +13,18 @@ namespace LlmTelegramBot
 
     public class ChatService : IChatService
     {
+        public class Message
+        {
+            public DateTime PublicationTime { get; set; }
+            public string MessageText { get; set; }
+            public string Author { get; set; }
+        }
+
+        JsonSerializerOptions jso = new JsonSerializerOptions() { 
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
+
         const string folder = "chats";
 
         private readonly ILogger<ChatService> _logger;
@@ -28,7 +41,13 @@ namespace LlmTelegramBot
             string fileName = GetPath(chatId);
             lock (_fileLock)
             {
-                File.AppendAllText(fileName, $"{DateTime.Now}: {senderName}: {message}\n");
+                var msg = new Message { 
+                    PublicationTime = DateTime.Now,
+                    MessageText = message,
+                    Author = senderName,
+                };
+                string jsonLine = JsonSerializer.Serialize(msg, jso);
+                File.AppendAllText(fileName, jsonLine + System.Environment.NewLine);
             }
             _logger.LogInformation("Saved message from {SenderName} in chat {ChatId}", senderName, chatId);
         }
@@ -47,8 +66,8 @@ namespace LlmTelegramBot
                 {
                     return new List<string>();
                 }
-
-                var messages = File.ReadAllLines(fileName).ToList();
+                var lines = File.ReadAllLines(fileName);
+                var messages = lines.Select(x=> JsonSerializer.Deserialize<Message>(x).MessageText).ToList();
                 _logger.LogInformation("Loaded {MessageCount} messages from chat {ChatId}", messages.Count, chatId);
                 return messages;
             }
@@ -56,12 +75,7 @@ namespace LlmTelegramBot
 
         public void SaveBotMessage(long chatId, string message)
         {
-            var fileName = GetPath(chatId);
-            lock (_fileLock)
-            {
-                File.AppendAllText(fileName, $"{DateTime.Now}: Bot: {message}\n");
-            }
-            _logger.LogInformation("Saved bot message in chat {ChatId}", chatId);
+            SaveMessage(chatId, "BOT", message);
         }
 
         public void ClearChatHistory(long chatId)
