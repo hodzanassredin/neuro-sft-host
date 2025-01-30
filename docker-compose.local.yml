@@ -48,12 +48,12 @@ services:
     #                       capabilities: [gpu]
     telegrambot:
       environment:
-        - OPENAI_ENDPOINT=http://vllm-server:8000/v1
+        - OPENAI_ENDPOINT=http://llm-server:8000/v1
         - OPENAI_KEY=nokey
         - BOT_TOKEN=${BOT_TOKEN}
         - CHATS_FOLDER=/chats
       depends_on:
-        - vllm-server
+        - llm-server
       build:
         context:  ./src/Llm/
         dockerfile: ./LlmTelegramBot/Dockerfile
@@ -64,25 +64,36 @@ services:
        options:
          max-size: "10m"
          max-file: "3"
-         
-    vllm-server:
+    llm-server:
+      volumes:
+        - ./models:/models
+      ports:
+        - 9001:8000
+      image: 
+        ghcr.io/ggerganov/llama.cpp:server
+      command: 
+        -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512
+        
+           
+    # llm-server:
 
-        environment:
-          - NVIDIA_VISIBLE_DEVICES=all
-          - HF_HOME=/hf/
-        volumes:
-            - ${HF_HOME}:/hf
-            - ./models:/models
-            - ./vllmcache:/vllmcache
-        ports:
-            - 9001:8000
-        #ipc: host
-        image: vllm/vllm-openai:latest
-        command: --gpu-memory-utilization 0.5 --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
-        deploy:
-          resources:
-            reservations:
-              devices:
-                - driver: nvidia
-                  device_ids: ['0']
-                  capabilities: [gpu]
+    #     environment:
+    #       - NVIDIA_VISIBLE_DEVICES=all
+    #       - HF_HOME=/hf/
+    #     volumes:
+    #         - ${HF_HOME}:/hf
+    #         - ./models:/models
+    #         - ./vllmcache:/vllmcache
+    #     ports:
+    #         - 9001:8000
+    #     #ipc: host
+    #     image: vllm/vllm-openai:latest
+    #     command: --enforce-eager --gpu-memory-utilization 0.3 --max_model_len=812 --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
+    #     #command: --device cpu --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
+    #     deploy:
+    #       resources:
+    #         reservations:
+    #           devices:
+    #             - driver: nvidia
+    #               device_ids: ['0']
+    #               capabilities: [gpu]

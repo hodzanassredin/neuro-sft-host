@@ -55,7 +55,7 @@ namespace LlmTelegramBot
                     var chatsFolder = hostContext.Configuration["CHATS_FOLDER"] ?? "chats";
                     services.AddChatClient(b =>
                          new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llmEndpoint) })
-                            .AsChatClient("cp-lora")
+                            .AsChatClient("/models/BlackBox-Coder-3B-F32.gguf")
                             .AsBuilder()
                             .UseLogging()
                             .UseFunctionInvocation()
