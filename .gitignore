@@ -311,3 +311,4 @@ vllmcache/*
 learn/notebooks/pdf_files*/
 learn/notebooks/txt_files*/
 chats/*
+*.gguf
