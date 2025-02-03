@@ -134,7 +134,7 @@ services:
       - "80:80"
     depends_on:
       - backend
-      - vllm
+      - vllm-server
 
   prometheus:
     image: prom/prometheus:latest

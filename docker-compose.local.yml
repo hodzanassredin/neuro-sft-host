@@ -4,26 +4,30 @@ services:
       command: redis-server
       ports:
         - "6379:6379"
+      networks:
+        - llm-network
     db:
-        image: pgvector/pgvector:pg16 #postgis/postgis:latest
-        ports:
-          - "5434:5432"
-        environment:
-          POSTGRES_DB: "llm"
-          POSTGRES_USER: "llm"
-          POSTGRES_PASSWORD: "llm"
-        volumes:
-          # - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
-          - ./data/postgresql:/var/lib/postgresql/data
-        healthcheck:
-          test: ["CMD-SHELL", "pg_isready -U llm"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
-        logging:
-            options:
-                max-size: "10m"
-                max-file: "3"
+      image: pgvector/pgvector:pg16 #postgis/postgis:latest
+      ports:
+        - "5434:5432"
+      environment:
+        POSTGRES_DB: "llm"
+        POSTGRES_USER: "llm"
+        POSTGRES_PASSWORD: "llm"
+      volumes:
+        # - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+        - ./data/postgresql:/var/lib/postgresql/data
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U llm"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      logging:
+          options:
+              max-size: "10m"
+              max-file: "3"
+      networks:
+        - llm-network
 
     # llm-dev-inference_server:
     #     image: nvcr.io/nvidia/tensorrtserver:19.05-py3
@@ -48,12 +52,12 @@ services:
     #                       capabilities: [gpu]
     telegrambot:
       environment:
-        - OPENAI_ENDPOINT=http://llm-server:8000/v1
+        - OPENAI_ENDPOINT=http://llm-proxy:80/v1
         - OPENAI_KEY=nokey
         - BOT_TOKEN=${BOT_TOKEN}
         - CHATS_FOLDER=/chats
       depends_on:
-        - llm-server
+        - llm-proxy
       build:
         context:  ./src/Llm/
         dockerfile: ./LlmTelegramBot/Dockerfile
@@ -64,17 +68,34 @@ services:
        options:
          max-size: "10m"
          max-file: "3"
+      networks:
+        - llm-network
+         
     llm-server:
+      restart: always
       volumes:
         - ./models:/models
-      ports:
-        - 9001:8000
       image: 
         ghcr.io/ggerganov/llama.cpp:server
       command: 
-        -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512
-        
-           
+        -m /models/BlackBox-Coder- 3B-F32.gguf--port 8000 --host 0.0.0.0 -n 512
+      networks:
+        - llm-network
+      deploy:
+        replicas: 1
+          
+    llm-proxy:
+      restart: always
+      image: nginx:latest
+      volumes:
+        - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Монтируем конфигурационный файл Nginx
+      ports:
+        - "9001:80"
+      depends_on:
+        - llm-server
+      networks:
+        - llm-network
+
     # llm-server:
 
     #     environment:
@@ -97,3 +118,6 @@ services:
     #             - driver: nvidia
     #               device_ids: ['0']
     #               capabilities: [gpu]
+networks:
+  llm-network:
+    driver: bridge
