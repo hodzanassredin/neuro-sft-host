@@ -1,0 +1,1 @@
+llama-gbnf-validator cp.gbnf test.cp

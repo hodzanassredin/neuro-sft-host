@@ -1,0 +1,11 @@
+
+definition 	= 		 ::=
+concatenation 	, 		
+termination 	; 	. 	
+alternation 	| 	
+optional 	[ ... ]  ( ... )?	
+repetition 	{ ... }  ( ... )*	
+grouping 	( ... ) 		
+terminal string 	" ... " 
+	
+exception 	- 		
