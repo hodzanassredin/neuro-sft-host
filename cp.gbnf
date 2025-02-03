@@ -81,13 +81,24 @@ Qualident ::= [ident "."] ident
 
 IdentDef ::= ident ["*" | "-"]
 
-ident ::= (letter | "_") {letter | "_" | digit}.
-letter ::= "A" .. "Z" | "a" .. "z" | UnicodeLetter.
-digit 	::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9".
-number 	::= integer | real.
-integer ::= digit {digit} | digit {hexDigit} ( "H" | "L" ).
-real ::= digit {digit} "." {digit} [ScaleFactor].
-ScaleFactor ::= "E" ["+" | "-"] digit {digit}.
-hexDigit ::= digit | "A" | "B" | "C" | "D" | "E" | "F".
-character ::= digit {hexDigit} "X".
-string ::= ' " ' {char} ' " ' | " ' " {char} " ' ".
+ident ::= (letter | "_") {letter | "_" | digit}
+
+letter ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | UnicodeLetter
+
+digit ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+number ::= integer | real
+
+integer ::= digit {digit} | digit {hexDigit} ("H" | "L")
+
+real ::= digit {digit} "." {digit} [ScaleFactor]
+
+ScaleFactor ::= "E" ["+" | "-"] digit {digit}
+
+hexDigit ::= digit | "A" | "B" | "C" | "D" | "E" | "F"
+
+character ::= digit {hexDigit} "X"
+
+string ::= '"' {char} '"' | "'" {char} "'"
+
+UnicodeLetter ::= char
