@@ -1,7 +1,14 @@
 ws ::= (" " | tab | lf)+
+wsc ::= (comment | ws)*
 cr  ::= [\r]
 lf  ::= cr? [\n]
 tab ::= [\t]
+
+unicode ::= [^\x7F\x00-\x1F] 
+
+commentstart ::= "(*"
+commentend ::= "*)"
+comment ::=  commentstart ( [^*] | ("*" [^)]) )* commentend
 eol      ::= "\n"
 letter   ::= [A-z]
 digit    ::= [0-9]
@@ -68,7 +75,7 @@ Statement ::= ( Designator ":=" Expr
              | "RETURN" (Expr)?
              )
 
-StatementSeq ::= Statement (";" Statement)*
+StatementSeq ::= wsc Statement wsc (";" wsc Statement  wsc )*
 
 FieldList ::= (IdentList ":" Type)?
 
@@ -84,7 +91,7 @@ MethAttributes ::= ("," "NEW")? ("," ("ABSTRACT" | "EMPTY" | "EXTENSIBLE"))?
 
 ForwardDecl ::= "PROCEDURE" "^" (Receiver)? IdentDef (FormalPars)? MethAttributes
 
-ProcDecl ::= "PROCEDURE" (Receiver)? IdentDef (FormalPars)? MethAttributes (";" DeclSeq ("BEGIN" StatementSeq)? "END" ident)?
+ProcDecl ::= "PROCEDURE" wsc (Receiver)? IdentDef (FormalPars)? MethAttributes (";" wsc DeclSeq ("BEGIN" StatementSeq)? "END" ws ident)?
 
 VarDecl ::= IdentList ":" Type
 
@@ -94,8 +101,8 @@ ConstDecl ::= IdentDef "=" ConstExpr
 
 DeclSeq ::= ( ("CONST" (ConstDecl ";")*) | ("TYPE" (TypeDecl ";")*) | ("VAR" (VarDecl ";")*) )* (ProcDecl ";" | ForwardDecl ";")*
 
-ImportList ::= "IMPORT" ws (ident ":=")? ident ("," (ident ":=")? ident)* ";"
+ImportList ::= "IMPORT" wsc (ident ":=")? ident ("," (ident ":=")? ident)* ";" wsc
 
-Module ::= "MODULE" ws  ident ";" ws (ImportList)? DeclSeq ("BEGIN" StatementSeq)? ("CLOSE" StatementSeq)? "END" ident "."
+Module ::= "MODULE" ws ident ";" wsc (ImportList)? DeclSeq wsc ("BEGIN" StatementSeq)? ("CLOSE" StatementSeq)? "END" ws ident "."
 root ::= Module
 
