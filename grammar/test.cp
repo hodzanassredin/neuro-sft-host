@@ -1,4 +1,4 @@
-MODULE CommObxStreamsClient;
+MODULE CommV24;
 (*
 	project	= "BlackBox"
 	organization	= "www.oberon.ch"
@@ -10,105 +10,185 @@ MODULE CommObxStreamsClient;
 	- YYYYMMDD, nn, ...
 	"
 	issues	= "
-	- ...
+	- this module was not decomposed into two modules, like CommStreams/CommTCP;
+	for better consistency, this should be corrected
 	"
 
 *)
 
-	IMPORT Services, CommStreams, TextModels, TextControllers, StdLog;
+	IMPORT SYSTEM, WinApi;
 
 	CONST
-		protocol = "CommTCP";			(* driver for TCP/IP communication, over Winsock *)
-		remoteAdr = "127.0.0.1:900";	(* loopback address, so you can test on your local machine;
-														choose a port number that is not used yet (here: 900).
-														You could also specify an IP address in the form
-														"mymachine.mydomain.com:900" *)
-		localAdr = "";							(* don't specify an address or port on the client side *)
+		bits4* = 0; bits5* = 1; bits6* = 2; bits7* = 3; stop15* = 4; stop2* = 5; even* = 6; odd* = 7;
+		inXonXoff* = 8; outXonXoff* = 9; inRTS* = 10; inDTR* = 11; outCTS* = 12; outDSR* = 13;
 
 	TYPE
-		Sender = POINTER TO RECORD (Services.Action)
-			prev, succ: Sender;	(* linked to allow stopping upon module unloading *)
-			stream: CommStreams.Stream;	(* during sending, the communicates through this object *)
-			idx, len: INTEGER;					(* index for start of data into the buf array, and length remaining to be sent *)
-			buf: ARRAY 256 OF BYTE		(* data to be sent *)
+		Connection* = POINTER TO LIMITED RECORD
+			hnd: WinApi.HANDLE;	(* # 0: open *)
+			opts: SET
 		END;
 
-	VAR
-		senders: Sender;
-
-	PROCEDURE (s: Sender) Do;
-		VAR written: INTEGER;
+	PROCEDURE Open* (device: ARRAY OF CHAR; baud: INTEGER; opts: SET; OUT conn: Connection);
+		VAR c: Connection; h: WinApi.HANDLE; res: INTEGER; dcb: WinApi.DCB; to: WinApi.COMMTIMEOUTS;
+			ss: ARRAY 256 OF SHORTCHAR;
 	BEGIN
-		IF s.stream.IsConnected() THEN
-			s.stream.WriteBytes(s.buf, s.idx, s.len, written);	(* poll for outgoing data *)
-			INC(s.idx, written); DEC(s.len, written);
-			IF s.len > 0 THEN	(* keep action alive if there remains further data to send *)
-				Services.DoLater(s, Services.now)
-			ELSE
-				s.stream.Close;
-				IF s.prev # NIL THEN s.prev.succ := s.succ ELSE senders := s.succ END;
-				IF s.succ # NIL THEN s.succ.prev := s.prev END
-			END
-		ELSE	(* connection was closed by server *)
-			IF s.prev # NIL THEN s.prev.succ := s.succ ELSE senders := s.succ END;
-			IF s.succ # NIL THEN s.succ.prev := s.prev END;
-			IF s.idx = 0 THEN StdLog.String("client: connection was not accepted by server")
-			ELSE StdLog.String("client: connection was closed by server")
-			END;
-			StdLog.Ln
-		END
-	END Do;
-
-
-	PROCEDURE Start (s: Sender);
-		VAR stream: CommStreams.Stream; res: INTEGER;
-	BEGIN
-		CommStreams.NewStream(protocol, localAdr, remoteAdr, stream, res);
-		IF stream # NIL THEN
-			s.prev := NIL; s.succ := senders; senders := s;
-			IF s.succ # NIL THEN s.succ.prev := s END;
-			s.stream := stream;
-			Services.DoLater(s, Services.now);
-			StdLog.String("client: connection opened"); StdLog.Ln
-		ELSE
-			StdLog.String("client: error opening the connection ("); StdLog.Int(res); StdLog.Char(")"); StdLog.Ln
-		END
-	END Start;
-
-	PROCEDURE Stop;
-	BEGIN
-		WHILE senders # NIL DO
-			senders.stream.Close; Services.RemoveAction(senders);
-			senders := senders.succ
-		END
-	END Stop;
-
-	PROCEDURE SendTextSelection*;
-		VAR c: TextControllers.Controller; beg, end, i, len: INTEGER; rd: TextModels.Reader; ch: CHAR; s: Sender;
-	BEGIN
-		c := TextControllers.Focus();
-		IF (c # NIL) & c.HasSelection() THEN
-			NEW(s);
-			c.GetSelection(beg, end);
-			rd := c.text.NewReader(NIL); rd.SetPos(beg);
-			i := 0; len := end - beg;
-			IF len >= LEN(s.buf) - 1 THEN len := LEN(s.buf) - 1 END;	(* clip string if necessary *)
-			WHILE len # 0 DO
-				rd.ReadChar(ch);
-				IF ch < 100X THEN	(* skip Unicode characters *)
-					s.buf[i] := SHORT(SHORT(ORD(ch))); INC(i)
+		ss := SHORT(device$);
+		h := WinApi.CreateFile(
+			ss,  WinApi.GENERIC_READ +  WinApi.GENERIC_WRITE, {}, NIL,  WinApi.OPEN_EXISTING, {}, 0);
+		IF h # -1 THEN
+			dcb.DCBlength := SIZE(WinApi.DCB);
+			res := WinApi.GetCommState(h, dcb);
+			IF res # 0 THEN
+				dcb.BaudRate := baud;
+				dcb.fBits0 := {0};	(* binary *)
+				IF opts * {even, odd} # {} THEN INCL(dcb.fBits0, 1) END;	(* check parity *)
+				IF outCTS IN opts THEN INCL(dcb.fBits0, 2) END;	(* CTS out flow control *)
+				IF outDSR IN opts THEN INCL(dcb.fBits0, 3) END;	(* DSR out flow control *)
+				IF inDTR IN opts THEN INCL(dcb.fBits0, 5) END;	(* DTR flow control handshake *)
+				IF outXonXoff IN opts THEN INCL(dcb.fBits0, 8) END;	(* Xon/Xoff out flow control *)
+				IF inXonXoff IN opts THEN INCL(dcb.fBits0, 9) END;	(* Xob/Xoff in flow control *)
+				IF inRTS IN opts THEN INCL(dcb.fBits0, 13) END;	(* RTS flow control handshake *)
+				IF bits4 IN opts THEN dcb.ByteSize := 4X
+				ELSIF bits5 IN opts THEN dcb.ByteSize := 5X
+				ELSIF bits6 IN opts THEN dcb.ByteSize := 6X
+				ELSIF bits7 IN opts THEN dcb.ByteSize := 7X
+				ELSE dcb.ByteSize := 8X
 				END;
-				DEC(len)
-			END;
-			s.idx := 0; s.len := i;
-			Start(s)
-		ELSE
-			StdLog.String("client: no text selection found"); StdLog.Ln
+				IF stop15 IN opts THEN dcb.StopBits := 1X
+				ELSIF stop2 IN opts THEN dcb.StopBits := 2X
+				ELSE dcb.StopBits := 0X
+				END;
+				IF even IN opts THEN dcb.Parity := 2X
+				ELSIF odd IN opts THEN dcb.Parity := 1X
+				ELSE dcb.Parity := 0X
+				END;
+				res := WinApi.SetCommState(h, dcb);
+				IF res # 0 THEN
+					to.ReadIntervalTimeout := 0;
+					to.ReadTotalTimeoutMultiplier := 0;
+					to.ReadTotalTimeoutConstant := 0;
+					to.WriteTotalTimeoutMultiplier := 0;
+					to.WriteTotalTimeoutConstant := 0;
+					res := WinApi.SetCommTimeouts(h, to);
+					IF res # 0 THEN
+						NEW(c); c.hnd := h; c.opts := opts; conn := c
+					END
+				END
+			END
 		END
-	END SendTextSelection;
+	END Open;
 
-CLOSE
-	Stop	(* prevent the client from trapping after module unloading *)
-END CommObxStreamsClient.
+	PROCEDURE Close* (c: Connection);
+		VAR res: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.CloseHandle(c.hnd);
+		c.hnd := -1
+	END Close;
 
- CommObxStreamsClient.SendTextSelection
+	PROCEDURE SendByte* (c: Connection; x: BYTE);
+		VAR res, written: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.WriteFile(c.hnd, SYSTEM.ADR(x), 1, written, NIL);
+		ASSERT(res # 0, 100)
+	END SendByte;
+
+	PROCEDURE SendBytes* (c: Connection; IN x: ARRAY OF BYTE; beg, len: INTEGER);
+		VAR res, written: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		ASSERT(LEN(x) >= beg + len, 22);
+		ASSERT(len > 0, 23);
+		res := WinApi.WriteFile(c.hnd, SYSTEM.ADR(x) + beg, len, written, NIL);
+		ASSERT(res # 0, 100)
+	END SendBytes;
+
+	PROCEDURE Available* (c: Connection): INTEGER;
+		VAR res: INTEGER; errors: SET; status: WinApi.COMSTAT;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.ClearCommError(c.hnd, errors, status);
+		ASSERT(res # 0, 100);
+		RETURN status.cbInQue
+	END Available;
+
+	PROCEDURE ReceiveByte* (c: Connection; OUT x: BYTE);
+		VAR res, read: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.ReadFile(c.hnd, SYSTEM.ADR(x), 1, read, NIL);
+		ASSERT(res # 0, 100)
+	END ReceiveByte;
+
+	PROCEDURE ReceiveBytes* (c: Connection; OUT x: ARRAY OF BYTE; beg, len: INTEGER);
+		VAR res, read: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		ASSERT(LEN(x) >= beg + len, 22);
+		ASSERT(len > 0, 23);
+		res := WinApi.ReadFile(c.hnd, SYSTEM.ADR(x) + beg, len, read, NIL);
+		ASSERT(res # 0, 100)
+	END ReceiveBytes;
+
+	PROCEDURE SetBuffers* (c: Connection; inpBufSize, outBufSize: INTEGER);
+		VAR res: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.SetupComm(c.hnd, inpBufSize, outBufSize)
+	END SetBuffers;
+
+	PROCEDURE SetDTR* (c: Connection; on: BOOLEAN);
+		VAR res: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		ASSERT(~(inDTR IN c.opts), 22);
+		IF on THEN res := WinApi.EscapeCommFunction(c.hnd, WinApi.SETDTR)
+		ELSE res := WinApi.EscapeCommFunction(c.hnd, WinApi.CLRDTR)
+		END
+	END SetDTR;
+
+	PROCEDURE SetRTS* (c: Connection; on: BOOLEAN);
+		VAR res: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		ASSERT(~(inRTS IN c.opts), 22);
+		IF on THEN res := WinApi.EscapeCommFunction(c.hnd, WinApi.SETRTS)
+		ELSE res := WinApi.EscapeCommFunction(c.hnd, WinApi.CLRRTS)
+		END
+	END SetRTS;
+
+	PROCEDURE SetBreak* (c: Connection; on: BOOLEAN);
+		VAR res: INTEGER;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		IF on THEN res := WinApi.EscapeCommFunction(c.hnd, WinApi.SETBREAK)
+		ELSE res := WinApi.EscapeCommFunction(c.hnd, WinApi.CLRBREAK)
+		END
+	END SetBreak;
+
+	PROCEDURE CTSState* (c: Connection): BOOLEAN;
+		VAR res: INTEGER; s: SET;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.GetCommModemStatus(c.hnd, s);
+		RETURN s * WinApi.MS_CTS_ON # {}
+	END CTSState;
+
+	PROCEDURE DSRState* (c: Connection): BOOLEAN;
+		VAR res: INTEGER; s: SET;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.GetCommModemStatus(c.hnd, s);
+		RETURN s * WinApi.MS_DSR_ON # {}
+	END DSRState;
+
+	PROCEDURE CDState* (c: Connection): BOOLEAN;
+		VAR res: INTEGER; s: SET;
+	BEGIN
+		ASSERT(c # NIL, 20); ASSERT(c.hnd # -1, 21);
+		res := WinApi.GetCommModemStatus(c.hnd, s);
+		RETURN s * WinApi.MS_RLSD_ON # {}
+	END CDState;
+
+END CommV24.
