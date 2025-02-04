@@ -8,12 +8,15 @@ unicode ::= [^\x7F\x00-\x1F]
 
 commentstart ::= "(*"
 commentend ::= "*)"
-comment ::=  commentstart ( [^*] | ("*" [^)]) )* commentend
+
+comment ::=  commentstart  ( [^*] | ("*" [^)]) )*  commentend
 eol      ::= "\n"
 letter   ::= [A-z]
 digit    ::= [0-9]
-hexDigit ::= digit + [A-F]
-string ::= ("\"" [^"]* "\"") | ("'" [^']* "'")
+hexDigit ::= digit | [A-F]
+
+# | ("'" [^']* "'")
+string ::= ("\"" [^"]* "\"")
 character ::= digit hexDigit* "X"
 
 number ::= integer | real
@@ -30,9 +33,9 @@ IdentDef ::= ident ("*" | "-")?
 
 Qualident ::= (ident ".")? ident
 
-IdentList ::= IdentDef ("," IdentDef)*
+IdentList ::= IdentDef ("," ws IdentDef)*
 
-ExprList ::= Expr ("," Expr)*
+ExprList ::= Expr ("," ws? Expr)*
 
 Designator ::= Qualident ("." ident | "[" ExprList "]" | "^" | "(" Qualident ")" | "(" (ExprList)? ")")* ("$")?
 
@@ -48,11 +51,11 @@ Set ::= "{" (Element ("," Element)*)? "}"
 
 Factor ::= Designator | number | character | string | "NIL" | Set | "(" Expr ")" | "~" Factor
 
-Term ::= Factor (MulOp Factor)*
+Term ::= Factor (ws? MulOp ws? Factor)*
 
-SimpleExpr ::= ("+" | "-")? Term (AddOp Term)*
+SimpleExpr ::= ("+" | "-")? Term (ws? AddOp ws? Term)*
 
-Expr ::= SimpleExpr (Relation SimpleExpr)?
+Expr ::= SimpleExpr (ws? Relation ws? SimpleExpr)?
 
 ConstExpr ::= Expr
 
@@ -62,28 +65,28 @@ CaseLabels ::= ConstExpr (".." ConstExpr)?
 
 Case ::= (CaseLabels ("," CaseLabels)*)? ":" StatementSeq
 
-Statement ::= ( Designator ":=" Expr
+Statement ::= ( Designator ws? ":=" ws? Expr
              | Designator ("(" (ExprList)? ")")?
-             | "IF" Expr "THEN" StatementSeq ("ELSIF" Expr "THEN" StatementSeq)* ("ELSE" StatementSeq)? "END"
-             | "CASE" Expr "OF" Case ("|" Case)* ("ELSE" StatementSeq)? "END"
-             | "WHILE" Expr "DO" StatementSeq "END"
-             | "REPEAT" StatementSeq "UNTIL" Expr
-             | "FOR" ident ":=" Expr "TO" Expr ("BY" ConstExpr)? "DO" StatementSeq "END"
+             | "IF" ws Expr ws "THEN" StatementSeq ("ELSIF" Expr "THEN" StatementSeq)* ("ELSE" StatementSeq)? "END"
+             | "CASE" ws Expr "OF" Case ("|" Case)* ("ELSE" StatementSeq)? "END"
+             | "WHILE" ws Expr ws "DO" StatementSeq "END"
+             | "REPEAT" ws StatementSeq "UNTIL" Expr
+             | "FOR" ws ident ":=" Expr "TO" Expr ("BY" ConstExpr)? "DO" StatementSeq "END"
              | "LOOP" StatementSeq "END"
              | "WITH" ( Guard "DO" StatementSeq )? ("|" ( Guard "DO" StatementSeq ))* ("ELSE" StatementSeq)? "END"
              | "EXIT"
-             | "RETURN" (Expr)?
+             | "RETURN" ws (Expr)?
              )
 
 StatementSeq ::= wsc Statement wsc (";" wsc Statement  wsc )*
 
-FieldList ::= (IdentList ":" Type)?
+FieldList ::= (IdentList ws? ":" ws? Type)?
 
-Type ::= Qualident | "ARRAY" (ConstExpr ("," ConstExpr)*)? "OF" Type | ("ABSTRACT" | "EXTENSIBLE" | "LIMITED")? "RECORD" ("(" Qualident ")")? FieldList (";" FieldList)* "END" | "POINTER" "TO" Type | "PROCEDURE" (FormalPars)?
+Type ::= Qualident | ("ARRAY" ws (ConstExpr ("," ConstExpr)*)? ws "OF" ws Type) | ("ABSTRACT" | "EXTENSIBLE" | "LIMITED")? "RECORD" ws ("(" Qualident ")")? ws FieldList (";" wsc FieldList)* wsc "END" | "POINTER" ws "TO" ws Type | "PROCEDURE" (FormalPars)?
 
-Receiver ::= "(" ("VAR" | "IN")? ident ":" ident ")"
+Receiver ::= "(" ("VAR" | "IN")? ident ws? ":" ws? ident ")"
 
-FPSection ::= ("VAR" | "IN" | "OUT")? ident ("," ident)* ":" Type
+FPSection ::= ("VAR" | "IN" | "OUT")? ident ("," ident)* ws? ":" ws? Type
 
 FormalPars ::= "(" (FPSection (";" FPSection)*)? ")" (":" Type)?
 
@@ -91,18 +94,21 @@ MethAttributes ::= ("," "NEW")? ("," ("ABSTRACT" | "EMPTY" | "EXTENSIBLE"))?
 
 ForwardDecl ::= "PROCEDURE" "^" (Receiver)? IdentDef (FormalPars)? MethAttributes
 
-ProcDecl ::= "PROCEDURE" wsc (Receiver)? IdentDef (FormalPars)? MethAttributes (";" wsc DeclSeq ("BEGIN" StatementSeq)? "END" ws ident)?
+ProcDecl ::= "PROCEDURE" (ws Receiver)? ws IdentDef ws? (FormalPars)? MethAttributes (";" wsc DeclSeq ("BEGIN" StatementSeq)? "END" ws ident)?
 
-VarDecl ::= IdentList ":" Type
+VarDecl ::= IdentList ws? ":" ws? Type
 
-TypeDecl ::= IdentDef "=" Type
+TypeDecl ::= IdentDef ws? "=" ws? Type
 
-ConstDecl ::= IdentDef "=" ConstExpr
+ConstDecl ::= IdentDef ws? "=" ws? ConstExpr
 
-DeclSeq ::= ( ("CONST" (ConstDecl ";")*) | ("TYPE" (TypeDecl ";")*) | ("VAR" (VarDecl ";")*) )* (ProcDecl ";" | ForwardDecl ";")*
+DeclSeq ::= ( ("CONST" wsc (ConstDecl ";" wsc )*) | ("TYPE" wsc (TypeDecl ";" wsc)*) | ("VAR" wsc (VarDecl ";" wsc)*) )* (ProcDecl ";" wsc | ForwardDecl ";")*
 
-ImportList ::= "IMPORT" wsc (ident ":=")? ident ("," (ident ":=")? ident)* ";" wsc
+ImportList ::= "IMPORT" wsc (ident ":=")? ident ("," ws (ident ":=")? ident)* ";" wsc
 
 Module ::= "MODULE" ws ident ";" wsc (ImportList)? DeclSeq wsc ("BEGIN" StatementSeq)? ("CLOSE" StatementSeq)? "END" ws ident "."
-root ::= Module
+
+Document ::= Module [^\x00]*
+
+root ::= Document
 
