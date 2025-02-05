@@ -1,4 +1,5 @@
 ws ::= (" " | tab | lf)+
+ws1 ::= " "
 wsc ::= (comment | ws)*
 cr  ::= [\r]
 lf  ::= cr? [\n]
@@ -51,9 +52,9 @@ Set ::= "{" (Element ("," wsc Element)*)? "}"
 
 Factor ::= Designator | number | character | string | "NIL" | Set | "(" Expr ")" | "~" Factor
 
-Term ::= Factor (ws? MulOp ws? Factor)*
+Term ::= Factor (ws MulOp ws Factor)*
 
-SimpleExpr ::= ("+" | "-")? Term (ws? AddOp ws? Term)*
+SimpleExpr ::= ("+" | "-")? Term (ws AddOp ws Term)*
 
 Expr ::= SimpleExpr (ws? Relation ws? SimpleExpr)?
 
