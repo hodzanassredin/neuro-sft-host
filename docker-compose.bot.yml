@@ -1,0 +1,29 @@
+services:
+    
+    telegrambot:
+      environment:
+        - OPENAI_ENDPOINT=http://llm-server:8000/v1
+        - OPENAI_KEY=nokey
+        - BOT_TOKEN=${BOT_TOKEN}
+        - CHATS_FOLDER=/chats
+      depends_on:
+        - llm-server
+      image: ghcr.io/hodzanassredin/code_bot:latest
+      volumes:
+       - ./chats:/chats
+      restart: always
+      logging:
+       options:
+         max-size: "10m"
+         max-file: "3"
+
+    llm-server:
+      restart: always
+      volumes:
+        - ./models:/models
+      image: 
+        ghcr.io/ggerganov/llama.cpp:server
+      command: 
+        -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512
+      deploy:
+        replicas: 1
