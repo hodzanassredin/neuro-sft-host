@@ -3,6 +3,18 @@ import json
 import requests
 import argparse
 
+
+s = '''
+Конечно! Вот простая программа "Hello, World!" на языке Python:
+
+```python
+print("Hello, World!")
+```
+
+Когда вы запустите этот код, он выведет на экран строку "Hello, World!". Если у вас есть дополнительные вопросы или вам нужно что-то еще, дайте знать!
+'''
+sample_code = json.dumps({"question": "Напиши программу выводящую hell world на python.", "answer" : s}, ensure_ascii=False)
+
 # Define the prompt for generating Q&A pairs
 prompt = '''
 Read the following documentation and generate the maximum number of question-answer pairs based on the information in the text. Present the result in a JSON array format with objects containing `question` and `answer` fields.
@@ -21,9 +33,8 @@ print("Hello, world!")
     {"question": "Who created Python?", "answer": "Guido van Rossum"},
     {"question": "When was Python first released?", "answer": "In 1991"},
     {"question": "What programming paradigms does Python support?", "answer": "Object-oriented, imperative, and functional programming"},
-    {"question": "What is Python known for?", "answer": "Simplicity and code readability"}
-]
-'''
+    {"question": "What is Python known for?", "answer": "Simplicity and code readability"},
+    ''' + sample_code + "\n]"
 
 # Function to split text into chunks based on empty lines
 def split_text_into_chunks(text, split_lines=2, min_lines=3):
