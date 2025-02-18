@@ -313,3 +313,4 @@ learn/notebooks/txt_files*/
 chats/*
 *.gguf
 .hg_download/
+datasets/*

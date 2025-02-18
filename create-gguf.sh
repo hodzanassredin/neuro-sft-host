@@ -1,3 +1,0 @@
-python3 ./convert_hf_to_gguf.py /mnt/c/Users/hodza/source/repos/neuro-sft-host/models/BlackBox-Coder-3B-merged/ --outfile /mnt/c/Users/hodza/source/repos/neuro-sft-host/models/BlackBox-Coder-3B-Q8.gguf --outtype q8_0
-python3 ./convert_hf_to_gguf.py /mnt/c/Users/hodza/source/repos/neuro-sft-host/models/BlackBox-Coder-3B-merged/ --outfile /mnt/c/Users/hodza/source/repos/neuro-sft-host/models/BlackBox-Coder-3B-F32.gguf --outtype f32
-python3 ./convert_hf_to_gguf.py /mnt/c/Users/hodza/source/repos/neuro-sft-host/models/BlackBox-Coder-3B-merged/ --outfile /mnt/c/Users/hodza/source/repos/neuro-sft-host/models/BlackBox-Coder-3B-F16.gguf --outtype f16
