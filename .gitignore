@@ -298,7 +298,6 @@ $RECYCLE.BIN/
 
 _NCrunch*
 data/
-./models/
 .aider*
 /learn/notebooks/.Trash-0/info
 /learn/env
@@ -310,6 +309,4 @@ vllmcache/*
 learn/notebooks/pdf_files*/
 learn/notebooks/txt_files*/
 chats/*
-*.gguf
 .hg_download/
-datasets/*
