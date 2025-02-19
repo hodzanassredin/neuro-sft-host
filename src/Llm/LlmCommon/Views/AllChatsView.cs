@@ -23,7 +23,7 @@ namespace LlmCommon.Views
 
         public Task<bool> Visit(CreatedChatEvent ev)
         {
-            Chats.Add(new ChatDtoBase() { 
+            Chats.Add(new ChatDtoBase() {
                 Id = ev.ChatId,
                 Name = ev.Name,
                 Owner = ev.Owner,

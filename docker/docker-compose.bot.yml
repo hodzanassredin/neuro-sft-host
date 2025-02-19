@@ -1,5 +1,5 @@
 services:
-    
+
     telegrambot:
       environment:
         - OPENAI_ENDPOINT=http://llm-server:8000/v1
@@ -21,9 +21,9 @@ services:
       restart: always
       volumes:
         - ./models:/models
-      image: 
+      image:
         ghcr.io/ggerganov/llama.cpp:server
-      command: 
+      command:
         -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512
       deploy:
         replicas: 1

@@ -19,7 +19,7 @@ namespace LlmCommon.Views
             var changed = false;
             if (ev is ChatEvent cev)
             {
-                
+
                 using var scope = sp.CreateScope();
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var viewStorage = scope.ServiceProvider.GetRequiredService<ViewStorage>();
@@ -32,7 +32,7 @@ namespace LlmCommon.Views
                 }
                 var chatView = await viewStorage.Get(new ChatQuery(cev.ChatId));
                 if (chatView == null && ev is CreatedChatEvent cce) {
-                    
+
                     chatView = new ChatView ();
                 }
                 Debug.Assert(chatView != null);
@@ -53,6 +53,6 @@ namespace LlmCommon.Views
             return changed;
         }
 
-        
+
     }
 }

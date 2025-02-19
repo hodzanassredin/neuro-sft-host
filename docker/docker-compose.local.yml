@@ -70,21 +70,21 @@ services:
          max-file: "3"
       networks:
         - llm-network
-         
+
     llm-server:
       restart: always
       volumes:
         - ./models:/models
         - ./grammar:/grammar
-      image: 
+      image:
         ghcr.io/ggerganov/llama.cpp:server
-      command: 
+      command:
         -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512 --grammar-file /grammar/cp.gbnf
       networks:
         - llm-network
       deploy:
         replicas: 1
-          
+
     llm-proxy:
       restart: always
       image: nginx:latest

@@ -7,7 +7,7 @@ namespace LlmCommon.Events
     {
         public CreatedChatEvent(Ids.Id chatId, string name, User owner) : base(chatId)
         {
-            
+
             Name = name;
             Owner = owner;
         }

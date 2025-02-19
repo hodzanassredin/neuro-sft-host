@@ -37,7 +37,7 @@ namespace LlmFrontend
             builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
             builder.Services.AddSingleton<IEventBus, SimpleEventBus>();
             builder.Services.AddSingleton<AppState>();
-            
+
             // register the account management interface
             builder.Services.AddScoped(
                 sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());

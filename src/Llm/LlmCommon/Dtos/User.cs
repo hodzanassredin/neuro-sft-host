@@ -2,7 +2,7 @@
 
 namespace LlmCommon.Dtos
 {
-    public class User 
+    public class User
     {
         public User(Ids.Id id, string name, bool isAdmin = false)
         {

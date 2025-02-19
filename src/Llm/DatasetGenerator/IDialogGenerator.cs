@@ -26,13 +26,13 @@ namespace DatasetGenerator
         };
         public async Task<IEnumerable<Dialog>> GetDialogs(string text, string source)
         {
-            var msgs = new List<ChatMessage>() { 
+            var msgs = new List<ChatMessage>() {
                 new ChatMessage(ChatRole.System, genPrompt),
                 new ChatMessage(ChatRole.User, $"Путь:\n {source}\nТекст:\n {text} "),
             };
 
-            var opts = new ChatOptions { 
-                
+            var opts = new ChatOptions {
+
             };
 
             var res = await client.CompleteAsync(msgs);
@@ -56,7 +56,7 @@ namespace DatasetGenerator
                     {
 
                     }
-                    
+
                 }
 
             }
@@ -64,14 +64,14 @@ namespace DatasetGenerator
             return Enumerable.Empty<Dialog>();
 
         }
-        
+
         private string genPrompt = @"
 
-На основе следующего текста сгенерируй пары вопросов и ответов похожие на те какие бы задал новичок который не знает как пользоваться системой, а ответ должен быть продробным, как если бы отвечал эксперт. 
+На основе следующего текста сгенерируй пары вопросов и ответов похожие на те какие бы задал новичок который не знает как пользоваться системой, а ответ должен быть продробным, как если бы отвечал эксперт.
 Все тексты описывают язык Component Pascal и систему BlackBox. Не путай Component Pascal с другими диалектами Pascal и Delphi.
 Ответ должен быть представлен в формате JSON, где каждая пара вопрос-ответ будет отдельным объектом в массиве. Также тебе будет дано путь до документа. Можешь использовать его как контекст.
 Ответ должен быть в формате маркдаун и может содержать фрагменты кода помеченные в начале и конце блоком ```
-Пример: 
+Пример:
 **Путь:**
 Text/Docu/Main.odc
 **Текст:**

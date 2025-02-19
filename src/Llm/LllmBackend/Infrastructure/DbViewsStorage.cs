@@ -50,7 +50,7 @@ namespace LlmBackend.Infrastructure
             Debug.Assert(res != null);
             return res;
         }
-        
+
         public override async Task<AllChatsView> Get(AllChatsQuery q)
         {
             var res = await Get<AllChatsView>(Keys.ALL_CHATS_KEY) ?? new AllChatsView();
@@ -87,7 +87,7 @@ namespace LlmBackend.Infrastructure
                     throw new NotImplementedException();
             };
             return Task.CompletedTask;
-            
+
         }
     }
 }

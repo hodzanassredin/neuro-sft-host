@@ -16,7 +16,7 @@ namespace LlmCommon.Implementations
         private readonly IUnitOfWork unitOfWork;
         public static readonly User aiUser = new User(Ids.Parse("AI"), "AI", true);
 
-        
+
 
         //private ConcurrentDictionary<Ids.Id, CancellationTokenSource> inFly = new();
         public AiManager(IEntityStorage entStorage, IChatClient client, IExecutor executor, IMetrics metrics, IUnitOfWork unitOfWork)

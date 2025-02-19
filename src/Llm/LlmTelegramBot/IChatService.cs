@@ -18,14 +18,14 @@ namespace LlmTelegramBot
 
     public class ChatService : IChatService
     {
-        
 
-        JsonSerializerOptions jso = new JsonSerializerOptions() { 
+
+        JsonSerializerOptions jso = new JsonSerializerOptions() {
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
 
-        
+
 
         private readonly ILogger<ChatService> _logger;
         private readonly string folder;

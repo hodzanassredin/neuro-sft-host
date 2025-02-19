@@ -9,8 +9,8 @@ namespace LlmTelegramBot
     public class LlmService : ILllmService
     {
         private readonly string System = @"
-Ты помощник для работы в системе BlackBox с использованием языка Component Pascal. Твоя задача информативно отвечать на вопросы. 
-Ответ необходимо предоставить в формате markdown и выделять код символами ```. 
+Ты помощник для работы в системе BlackBox с использованием языка Component Pascal. Твоя задача информативно отвечать на вопросы.
+Ответ необходимо предоставить в формате markdown и выделять код символами ```.
         ";
 
         private readonly IChatClient client;
@@ -24,7 +24,7 @@ namespace LlmTelegramBot
             Temperature = 0.1f,
             TopP = 0.3f,
             ResponseFormat = ChatResponseFormatText.Text,
-            
+
             MaxOutputTokens = 512
         };
         public async Task<string> Generate(List<Message> msgs)

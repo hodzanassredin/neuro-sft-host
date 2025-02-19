@@ -11,7 +11,7 @@ namespace LlmBackend.Infrastructure
         private static readonly IList<Entity> _items = new List<Entity>();
 
 
-        public Task<T?> Load<T>(Ids.Id id) where T : Entity 
+        public Task<T?> Load<T>(Ids.Id id) where T : Entity
         {
             T? res = null;
             var e = _items.SingleOrDefault(x => x.Id == id);
@@ -35,7 +35,7 @@ namespace LlmBackend.Infrastructure
             if (ex!= null)
             {
                 _items.Remove(ex);
-                
+
             }
             _items.Add(entity);
 

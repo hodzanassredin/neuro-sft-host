@@ -17,8 +17,8 @@ TEMPLATE """{{ if .System }}<|im_start|>system
 """
 
 # sets a custom system message to specify the behavior of the chat assistant
-SYSTEM """Ты помощник для работы в системе BlackBox с использованием языка Component Pascal. Твоя задача информативно отвечать на вопросы. 
-Ответ необходимо предоставить в формате markdown и выделять код символами ```. 
+SYSTEM """Ты помощник для работы в системе BlackBox с использованием языка Component Pascal. Твоя задача информативно отвечать на вопросы.
+Ответ необходимо предоставить в формате markdown и выделять код символами ```.
 """
 
 LICENSE """

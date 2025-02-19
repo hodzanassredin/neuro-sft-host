@@ -92,7 +92,7 @@ def main():
     # Prepare dataset
     dataset_name = os.path.basename(args.dataset_path)
     only_model_name = args.model_name.split("/")[-1].replace(':', "_")
-    
+
 
     with open(args.dataset_path, 'r') as file:
         texts = file.readlines()

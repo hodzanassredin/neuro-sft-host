@@ -81,7 +81,7 @@ namespace LlmBackend.Infrastructure
 
         public Task<bool> Handle(Event ev)
         {
-            if (ev is ChatEvent cev) { 
+            if (ev is ChatEvent cev) {
                 return cev.Accept(this);
             }
             return Task.FromResult(false);

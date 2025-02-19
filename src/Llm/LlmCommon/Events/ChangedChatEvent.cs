@@ -11,7 +11,7 @@ namespace LlmCommon.Events
             AiSettings = aiSettings;
             User = user;
         }
-       
+
         public string Name { get; set; }
         public AiSettingsDto? AiSettings { get; }
         public User User { get; set; }

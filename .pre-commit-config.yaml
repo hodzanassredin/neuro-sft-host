@@ -1,0 +1,19 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace  # Удаляет лишние пробелы в конце строк
+      - id: end-of-file-fixer    # Убеждается, что файл заканчивается на новую строку
+      - id: check-yaml           # Проверяет синтаксис YAML файлов
+
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.9.1
+    hooks:
+      - id: nbqa-black
+        additional_dependencies: [black]
+      - id: nbqa-pyupgrade
+        additional_dependencies: [pyupgrade]
+      - id: nbqa-isort
+        additional_dependencies: [isort]
+      - id: nbqa-flake8          # Запускает flake8 для Jupyter Notebooks
+        additional_dependencies: [flake8]

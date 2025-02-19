@@ -8,5 +8,5 @@ namespace LlmCommon
         public abstract Task<View> Accept(ViewStorage visitor);
     }
 
-    public abstract class TypedQuery<V> : Query where V : View { } 
+    public abstract class TypedQuery<V> : Query where V : View { }
 }

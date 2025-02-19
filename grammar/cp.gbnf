@@ -5,7 +5,7 @@ cr  ::= [\r]
 lf  ::= cr? [\n]
 tab ::= [\t]
 
-unicode ::= [^\x7F\x00-\x1F] 
+unicode ::= [^\x7F\x00-\x1F]
 
 commentstart ::= "(*"
 commentend ::= "*)"
@@ -112,4 +112,3 @@ Module ::= "MODULE" ws ident ";" wsc (ImportList)? DeclSeq wsc ("BEGIN" Statemen
 Document ::= Module [^\x00]*
 
 root ::= Document
-

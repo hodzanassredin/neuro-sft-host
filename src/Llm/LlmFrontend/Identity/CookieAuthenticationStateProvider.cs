@@ -34,7 +34,7 @@ namespace LlmFrontend.Identity
         /// <summary>
         /// Default principal for anonymous (not authenticated) users.
         /// </summary>
-        private readonly ClaimsPrincipal Unauthenticated = 
+        private readonly ClaimsPrincipal Unauthenticated =
             new(new ClaimsIdentity());
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace LlmFrontend.Identity
                 };
             }
             catch { }
-             
+
             // unknown error
             return new FormResult
             {
@@ -135,7 +135,7 @@ namespace LlmFrontend.Identity
 
                     // success!
                     return new FormResult { Succeeded = true };
-                }                
+                }
             }
             catch { }
 
@@ -194,8 +194,8 @@ namespace LlmFrontend.Identity
                     _authenticated = true;
                 }
             }
-            catch(Exception ex) { 
-                
+            catch(Exception ex) {
+
             }
 
             // return the state

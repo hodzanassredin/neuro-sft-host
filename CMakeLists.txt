@@ -49,12 +49,14 @@ add_custom_target(stop_notebooks
     COMMAND docker-compose -f docker-compose.yml down
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/labs
 )
+add_custom_target(start_wandb
+    COMMAND wandb server start
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 
 # Add a target to run Docker Compose
 add_custom_target(run_inference
     COMMAND docker-compose -f ${CMAKE_SOURCE_DIR}/docker-compose.yml up
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-
-
-

@@ -48,7 +48,7 @@ def process_pdf_folder(folder_path, output_folder, converter):
                         output_file.write(text)
                     print(f"Processed: {filename}")
                 except:
-                    print(f"Cant parse, skipping: {filename}")    
+                    print(f"Cant parse, skipping: {filename}")
             else:
                 print(f"Duplicate found, skipping: {filename}")
 

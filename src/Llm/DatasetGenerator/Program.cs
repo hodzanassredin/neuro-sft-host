@@ -45,7 +45,7 @@ namespace DatasetGenerator
 
             var gen = new AiDialogGenerator(client);
             var chunker = new LineChunker(30);
-            
+
 
             string subFolder = String.Empty;// "./Docu";
             var texts = new RecursiveDirDataset(Path.Combine(inPath, subFolder));
@@ -80,7 +80,7 @@ namespace DatasetGenerator
                     //var results = tasks.Select(x => x.Result);
 
 
-                    
+
 
 
                 }

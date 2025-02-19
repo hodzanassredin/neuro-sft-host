@@ -38,7 +38,7 @@ namespace LlmBackend.Hubs
             var cmd = e.Get<Command>();
 
             await cmd.Accept(executor, this);
-            
+
         }
         [Authorize]
         public async Task<Envelope> ExecQuery(Envelope e)
@@ -56,7 +56,7 @@ namespace LlmBackend.Hubs
         public override async Task OnConnectedAsync()
         {
             var userName = Context.User?.Identity?.Name;
-            
+
             if (userName != null)
             {
                 _connections.Add(((IContext)this).GetCurrentUser().Id, Context.ConnectionId);

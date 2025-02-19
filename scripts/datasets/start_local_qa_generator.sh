@@ -5,4 +5,4 @@ docker run --runtime nvidia --gpus all \
     --ipc=host \
     vllm/vllm-openai:latest \
     --model ministral/Ministral-3b-instruct \
-    --quantization fp8 --gpu_memory_utilization 0.90 
+    --quantization fp8 --gpu_memory_utilization 0.90

@@ -25,7 +25,7 @@ namespace LlmBackend.Infrastructure
         }
 
         private async Task CancelAll() {
-            foreach (var task in startedTasks) { 
+            foreach (var task in startedTasks) {
                 await task.Cancel();
             }
         }
@@ -51,7 +51,7 @@ namespace LlmBackend.Infrastructure
         }
         private async void RunTask(LongRunningTask workItem, CancellationToken stoppingToken)
         {
-            
+
             logger.LogInformation($"starting {workItem.GetType().Name}.");
             _ = workItem.Start(sp);
             Debug.Assert(workItem.State != LongRunningTaskState.Created);

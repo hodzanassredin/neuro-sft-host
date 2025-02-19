@@ -18,13 +18,13 @@ namespace LlmCommon.Dtos
         }
         public ChatDto()
         {
-            
+
         }
         [JsonInclude]
         public List<User> Subscribers { get; private set; } = [];
         [JsonInclude]
         public List<MessageDto> Messages { get; private set; } = [];
 
-        
+
     }
 }

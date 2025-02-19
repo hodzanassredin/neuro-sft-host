@@ -43,7 +43,7 @@ namespace Crawler
         public IEnumerable<string> GetTexts(string xpath, bool decode = true)
         {
             var res = doc.DocumentNode.SelectNodes(xpath);
-            if (res != null) { 
+            if (res != null) {
                 foreach (HtmlNode link in res)
                 {
                     if (decode)
@@ -129,7 +129,7 @@ namespace Crawler
                 foreach (HtmlNode node in res)
                 {
                      yield return ConvertHtmlToMarkdown(node);
-                    
+
                 }
             }
         }

@@ -5,3 +5,6 @@ trl
 torchaudio
 subword-nmt
 ctranslate2==4.4.0
+peft
+evaluate
+bitsandbytes

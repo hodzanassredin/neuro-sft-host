@@ -20,7 +20,7 @@ namespace LlmBackend
     public class Program
     {
 
-        
+
         private const string ModelId = "cp-lora";
 
         public static async Task Main(string[] args)
@@ -74,7 +74,7 @@ namespace LlmBackend
 
             // configure authorization
             builder.Services.AddAuthorizationBuilder();
-            
+
 
             // add the database (in memory for the sample)
             builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("AppDbContext")));
@@ -144,7 +144,7 @@ namespace LlmBackend
                         .AddPrometheusExporter();
                 });
 
-            builder.Services.AddChatClient(b => 
+            builder.Services.AddChatClient(b =>
                 new OpenAIClient(new ApiKeyCredential("nokey"), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(llm) })
                     .AsChatClient(ModelId)
                     .AsBuilder()
@@ -168,7 +168,7 @@ namespace LlmBackend
                 .AddCheck<HealthCheck>(nameof(HealthCheck));
             //.ForwardToPrometheus();
 
-            
+
             var app = builder.Build();
 
 

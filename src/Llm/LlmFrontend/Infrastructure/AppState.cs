@@ -31,7 +31,7 @@ namespace LlmFrontend.Infrastructure
 
         public AllChatsView ChatsView => chats;
 
-        
+
 
         private readonly ILogger<AppState> logger;
         private readonly IEventBus bus;
@@ -62,7 +62,7 @@ namespace LlmFrontend.Infrastructure
         {
             if (ev is ChatEvent cev)
             {
-                
+
 
                 var accepted = await cev.Accept(chats);
                 if (ev is RemovedChatEvent rce)
@@ -77,8 +77,8 @@ namespace LlmFrontend.Infrastructure
                         accepted = accepted || await cev.Accept(chat);
                     }
                 }
-                
-                
+
+
                 if (accepted)
                 {
                     logger.LogInformation($"Recieved event {cev.ToString()}");

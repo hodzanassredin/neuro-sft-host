@@ -8,7 +8,7 @@ namespace LlmCommon.Entities
 {
     public class ChatEntity : Entity
     {
-        [JsonConstructor] 
+        [JsonConstructor]
         private ChatEntity() { }
         public ChatEntity(string name, User user)
         {
@@ -42,7 +42,7 @@ namespace LlmCommon.Entities
                     break;
                 case CreatedMessageEvent createdMessageEvent:
                     Debug.Assert(createdMessageEvent.ChatId == this.Id);
-                    Dto.Messages.Add(new MessageDto { 
+                    Dto.Messages.Add(new MessageDto {
                         Id = createdMessageEvent.MessageId,
                         Text = createdMessageEvent.Text,
                         User = createdMessageEvent.Writer
@@ -55,7 +55,7 @@ namespace LlmCommon.Entities
                     if (changedMessageEvent.Append) {
                         msg.Text += changedMessageEvent.Text;
                     }
-                    else { 
+                    else {
                         msg.Text = changedMessageEvent.Text;
                     }
                     break;
@@ -111,7 +111,7 @@ namespace LlmCommon.Entities
             Exec(new RemovedMessageEvent(this.Id, messageId));
         }
 
-        private void CheckAuth(bool pred) { 
+        private void CheckAuth(bool pred) {
             if (!pred) { throw new Exception("User cant delete other user's data"); }
         }
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LlmCommon
 {
-    public enum LongRunningTaskState { 
+    public enum LongRunningTaskState {
         Created,
         Waiting,
         Started,

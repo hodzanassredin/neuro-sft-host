@@ -49,7 +49,7 @@ namespace LlmTelegramBot
             _logger.LogInformation("Press [Enter] to exit.");
             Console.ReadLine();
         }
-        
+
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Type != UpdateType.Message && update.Type != UpdateType.CallbackQuery)
@@ -115,7 +115,7 @@ namespace LlmTelegramBot
                         await botClient.SendMessage(update.Message.Chat.Id, "ERROR: try reset chat", replyMarkup: null, cancellationToken: cancellationToken);
                     }
                 }
-                
+
             }
             //else if (update.Type == UpdateType.CallbackQuery)
             //{

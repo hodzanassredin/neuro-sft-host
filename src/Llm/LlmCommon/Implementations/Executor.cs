@@ -104,6 +104,6 @@ namespace LlmCommon.Implementations
             await taskQueue.QueueBackgroundWorkItemAsync(new GenerateResponseTask(cmd.ChatId, cmd.MessageId));
         }
 
-        
+
     }
 }

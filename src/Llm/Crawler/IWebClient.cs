@@ -11,7 +11,7 @@ namespace Crawler
     {
         HttpClient client;
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="baseAddress">like "https://jsonplaceholder.typicode.com"</param>
         public Client(String baseAddress)

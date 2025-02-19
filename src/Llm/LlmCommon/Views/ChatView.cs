@@ -36,7 +36,7 @@ namespace LlmCommon.Views
         public Task<bool> Visit(CreatedMessageEvent ev)
         {
             if (Chat?.Id != ev.ChatId) {
-                return Task.FromResult(false); 
+                return Task.FromResult(false);
             }
             var alreadyContains = Chat.Messages.Any(x => x.Id == ev.MessageId);
             Debug.Assert(!alreadyContains);
@@ -96,7 +96,7 @@ namespace LlmCommon.Views
             {
                 Chat.Name = ev.Name;
             }
-            if (ev.AiSettings != null) { 
+            if (ev.AiSettings != null) {
                 Chat.AiSettings = ev.AiSettings;
             }
             return Task.FromResult(true);
@@ -105,7 +105,7 @@ namespace LlmCommon.Views
         public Task<bool> Visit(CreatedChatEvent createdChatEvent)
         {
             Debug.Assert(this.Chat == null);
-            this.Chat = new ChatDto { 
+            this.Chat = new ChatDto {
                 Id = createdChatEvent.ChatId,
                 Name = createdChatEvent.Name,
                 Owner = createdChatEvent.Owner

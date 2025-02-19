@@ -82,13 +82,13 @@ namespace Crawler
                                     Content = messages[msgShift].Second,
                                 };
                             }
-                            
+
                         }
                     }
                 }
             }
-            
-            
+
+
         }
     }
 }

@@ -1,5 +1,5 @@
 services:
-  
+
   sft:
     shm_size: '8gb'
     build:
@@ -31,10 +31,3 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-
-
-          
-    
-    
-    
- 
