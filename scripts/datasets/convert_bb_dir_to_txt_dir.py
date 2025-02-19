@@ -27,7 +27,7 @@ def convert_files(source_dir, dest_dir):
                 if not os.path.exists(dest_subdir):
                     os.makedirs(dest_subdir)
 
-                dest_file = os.path.join(dest_subdir, filename)
+                dest_file = os.path.join(dest_subdir, filename  + '.txt')
 
                 # Call the odcey utility to convert the file
                 subprocess.run(['odcey', 'text', source_file, dest_file])

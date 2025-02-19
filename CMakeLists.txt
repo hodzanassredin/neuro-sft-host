@@ -40,6 +40,17 @@ add_custom_target(run_training
 )
 
 # Add a target to run Docker Compose
+add_custom_target(run_notebooks
+    COMMAND docker-compose -f docker-compose.yml up -d
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/labs
+)
+
+add_custom_target(stop_notebooks
+    COMMAND docker-compose -f docker-compose.yml down
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/labs
+)
+
+# Add a target to run Docker Compose
 add_custom_target(run_inference
     COMMAND docker-compose -f ${CMAKE_SOURCE_DIR}/docker-compose.yml up
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
