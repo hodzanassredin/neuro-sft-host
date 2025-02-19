@@ -38,7 +38,7 @@ def convert_files(source_dir, dest_dir):
         for filename in files:
             if filename.endswith('.odc'):
                 source_file = os.path.join(root, filename)
-                print(f"Converting {source_file}")
+                print(f"Fix encoding {source_file}")
 
                 # Create corresponding directory structure in the destination directory
                 relative_path = os.path.relpath(root, source_dir)

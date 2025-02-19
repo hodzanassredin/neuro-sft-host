@@ -39,8 +39,9 @@ def process_pdf_folder(folder_path, output_folder, converter):
 
             if file_hash not in seen_hashes:
                 seen_hashes.add(file_hash)
+                print(f"proccessing {file_path}")
                 text = pdf_to_text(file_path, converter)
-                output_file_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.txt")
+                output_file_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.md")
                 with open(output_file_path, 'w', encoding='utf-8') as output_file:
                     output_file.write(text)
                 print(f"Processed: {filename}")
@@ -54,7 +55,7 @@ def main():
 
     args = parser.parse_args()
 
-    converter = PdfConverter(artifact_dict=create_model_dict())
+    converter = PdfConverter(artifact_dict=create_model_dict(), config = {})
     process_pdf_folder(args.folder_path, args.output_folder, converter)
 
 if __name__ == "__main__":

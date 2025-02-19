@@ -47,9 +47,9 @@ def download_links(pdf_links, folder):
     for link in pdf_links:
         try:
             wget.download(link, out=folder)
-            print(f'Downloaded {link}')
+            print(f'\nDownloaded {link}')
         except Exception as e:
-            print(f'Failed to download {link}. Error: {e}')
+            print(f'ERROR: \nFailed to download {link}. Error: {e}')
 
 def main(url, folder):
     """
@@ -73,7 +73,7 @@ def main(url, folder):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Download PDF files from a given URL.')
-    parser.add_argument('url', type=str, help='The URL to start extracting links from.')
+    parser.add_argument('--url', type=str, default="https://oberoncore.ru/library/start", help='The URL to start extracting links from.')
     parser.add_argument('--folder', type=str, default='pdf_files', help='The folder to save the downloaded PDF files.')
 
     args = parser.parse_args()
