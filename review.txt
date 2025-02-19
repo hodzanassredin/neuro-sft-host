@@ -59,4 +59,4 @@ docker-compose.yml, но не предоставлены инструкции п
 Component Pascal форумы, поскольку кажется, что потенциал здесь очень
 высокий.
 Блуменау Марк Ильич
-+7 918 954 6314 mblumenau@hse.ru
++7 XXX mblumenau@XXX.ru
