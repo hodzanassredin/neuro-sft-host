@@ -1,1 +1,0 @@
-python3 download_pdfs.py --folder $1

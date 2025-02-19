@@ -40,11 +40,15 @@ def process_pdf_folder(folder_path, output_folder, converter):
             if file_hash not in seen_hashes:
                 seen_hashes.add(file_hash)
                 print(f"proccessing {file_path}")
-                text = pdf_to_text(file_path, converter)
-                output_file_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.md")
-                with open(output_file_path, 'w', encoding='utf-8') as output_file:
-                    output_file.write(text)
-                print(f"Processed: {filename}")
+                try:
+
+                    text = pdf_to_text(file_path, converter)
+                    output_file_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.md")
+                    with open(output_file_path, 'w', encoding='utf-8') as output_file:
+                        output_file.write(text)
+                    print(f"Processed: {filename}")
+                except:
+                    print(f"Cant parse, skipping: {filename}")    
             else:
                 print(f"Duplicate found, skipping: {filename}")
 
