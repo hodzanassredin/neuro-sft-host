@@ -8,4 +8,4 @@ RUN --mount=type=cache,target=/var/cache/apt \
 RUN --mount=type=cache,target=/root/.cache/pip \
         pip install -U pip && \
         pip install -r requirements.txt
-CMD ["jupyter", "lab", "--allow-root", "--ip=0.0.0.0"]
+CMD ["jupyter", "lab", "--allow-root", "--ip=0.0.0.0", "--NotebookApp.token=''", "--NotebookApp.password=''"]
