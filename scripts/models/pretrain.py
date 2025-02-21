@@ -89,7 +89,8 @@ def main():
         bias="none",
         task_type=peft.TaskType.CAUSAL_LM
     )
-
+    dataset_name = os.path.basename(args.dataset_path)
+    only_model_name = args.model_name.split("/")[-1].replace(':', "_")
     # Load model and tokenizer
     model, tokenizer = load_model_and_tokenizer(args.model_name, device, bnb_config, peft_config)
 
