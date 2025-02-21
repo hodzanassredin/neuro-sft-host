@@ -5,9 +5,9 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmFrontend", "LlmFrontend\LlmFrontend.csproj", "{F263E072-3ED2-4120-9290-1EFFD057E764}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmBackend", "LllmBackend\LlmBackend.csproj", "{9C130DE4-0CCB-470E-AA31-F7E55A8FBE82}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmBackend", "LlmBackend\LlmBackend.csproj", "{9C130DE4-0CCB-470E-AA31-F7E55A8FBE82}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmChat", "LllmChat\LlmChat.csproj", "{FC61AB4F-A058-47AC-B534-7A0AF5F099E0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmChat", "LlmChat\LlmChat.csproj", "{FC61AB4F-A058-47AC-B534-7A0AF5F099E0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LlmCommon", "LlmCommon\LlmCommon.csproj", "{3508AD49-0D18-4B52-A00B-376C38C8DC8E}"
 EndProject
