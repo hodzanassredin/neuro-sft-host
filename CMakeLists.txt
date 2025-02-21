@@ -75,6 +75,11 @@ add_custom_target(run_training
     COMMAND python3 ${DATASETS_DIR}/train.py --model_name ${MODEL_NAME}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+add_custom_target(crawl_forum
+    COMMAND dotnet run --project ${SRC_DIR}/Crawler/Crawler.csproj --output ${DATASETS_DIR}/forum.jsonl
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 
 # Add a target to run Docker Compose
 add_custom_target(run_notebooks

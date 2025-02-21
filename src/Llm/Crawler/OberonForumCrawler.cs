@@ -1,27 +1,25 @@
 ﻿using System.Web;
-using System;
-using static Crawler.OberonForumCrawler;
 using System.Text.RegularExpressions;
 
 namespace Crawler
 {
-    public class OberonForumCrawler : ICrawler<Message>
+    public class OberonForumCrawler : ICrawler<Crawler.OberonForumCrawler.Message>
     {
         public class Message {
             public int SubForumNumber { get; set; }
-            public string SubForum { get; set; }
+            public string SubForum { get; set; } = "";
             public int TopicNumber { get; set; }
-            public string Topic { get; set; }
+            public string Topic { get; set; } = "";
             public int MessageNumber { get; set; }
-            public string Author { get; set; }
-            public string Content { get; set; }
+            public string Author { get; set; } = "";
+            public string Content { get; set; } = "";
         }
 
         private readonly IWebClient client;
 
-        public OberonForumCrawler()
+        public OberonForumCrawler(string url)
         {
-            this.client = new Client("https://forum.oberoncore.ru");
+            this.client = new Client(url);
         }
 
         Regex topicCountRegex = new Regex(@"Тем:\s*(\d+)");
@@ -57,7 +55,7 @@ namespace Crawler
                     {
                         var topicLink = topicLinkTmp.Substring(1);
                         var q = new Uri("http://localhost" + topicLink).Query;
-                        var topicNumber = Int32.Parse(HttpUtility.ParseQueryString(q).Get("t"));
+                        var topicNumber = Int32.Parse(HttpUtility.ParseQueryString(q).Get("t")!);
                         var topicFirstPage = await client.Crawl(topicLink);
                         var topicName = topicFirstPage.GetTexts("//*[@id=\"pageheader\"]/h2/a").First();
                         int messageCount = ExtractNumber(topicFirstPage.GetTexts("//*[@id=\"pagecontent\"]/table[1]/tr/td[3]").First());
