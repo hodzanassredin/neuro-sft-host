@@ -12,6 +12,11 @@ services:
         - HF_HOME=/hf/
         - JUPYTER_TOKEN=token
         - HF_TOKEN=${HF_TOKEN}
+        - CLEARML_WEB_HOST="https://app.clear.ml/"
+        - CLEARML_API_HOST="https://api.clear.ml"
+        - CLEARML_FILES_HOST="https://files.clear.ml"
+        - CLEARML_API_ACCESS_KEY=${CLEARML_API_ACCESS_KEY}
+        - CLEARML_API_SECRET_KEY=${CLEARML_API_SECRET_KEY}
     ports:
       - '8889:8888'
     logging:

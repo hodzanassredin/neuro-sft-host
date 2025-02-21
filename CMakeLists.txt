@@ -4,6 +4,7 @@ project(NeuroSft)
 set(DATASETS_DIR "${CMAKE_SOURCE_DIR}/datasets")
 set(MODELS_DIR "${CMAKE_SOURCE_DIR}/models")
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/src/Llm")
 # Specify the MODEL_NAME variable, which can be passed when calling cmake
 set(MODEL_NAME "default_model" CACHE STRING "Name of the model to train")
 
@@ -49,14 +50,18 @@ add_custom_target(stop_notebooks
     COMMAND docker-compose -f docker-compose.yml down
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/labs
 )
-add_custom_target(start_wandb
-    COMMAND wandb server start
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
 
+add_custom_target(build_docker
+    COMMAND ${SCRIPTS_DIR}/build_docker.sh ${SRC_DIR}
+)
 
 # Add a target to run Docker Compose
 add_custom_target(run_inference
     COMMAND docker-compose -f ${CMAKE_SOURCE_DIR}/docker-compose.yml up
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+add_custom_target(clearml_init
+    COMMAND clearml-init
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

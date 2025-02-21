@@ -21,8 +21,6 @@ Code cleanup and makefile for tasks. Rewrite notebooks to python scripts.
 
 **ollama run hodza/BlackBox-Coder-3B:F32**
 
-gguf q8 модель работает хуже чем родная hf модель.
-
 # Сбор датасетов
 
 [Кравлер для форума](./src/Llm/Crawler)
