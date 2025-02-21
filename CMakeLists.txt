@@ -6,11 +6,11 @@ set(MODELS_DIR "${CMAKE_SOURCE_DIR}/models")
 set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/scripts")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src/Llm")
 # Specify the MODEL_NAME variable, which can be passed when calling cmake
-set(MODEL_NAME "default_model" CACHE STRING "Name of the model to train")
+set(MODEL_NAME "Qwen/Qwen2.5-Coder-3B-Instruct" CACHE STRING "Name of the model to train")
+set(DATASET_NAME "hodza/BlackBox.Shkola.2014" CACHE STRING "Name of the dataset to train")
 
-
-find_package (Python3 COMPONENTS Interpreter)
-execute_process (COMMAND "${Python3_EXECUTABLE}" -m venv "/path/to/venv")
+#find_package (Python3 COMPONENTS Interpreter)
+#execute_process (COMMAND "${Python3_EXECUTABLE}" -m venv "/path/to/venv")
 
 # # Here is the trick
 # ## update the environment with VIRTUAL_ENV variable (mimic the activate script)
@@ -71,8 +71,8 @@ add_custom_command(
 add_custom_target(build_pdfs_dataset DEPENDS ${DATASETS_DIR}/.mdsdone)
 
 # Add a target to run training
-add_custom_target(run_training
-    COMMAND python3 ${DATASETS_DIR}/train.py --model_name ${MODEL_NAME}
+add_custom_target(run_pretrain
+    COMMAND python3 ${SCRIPTS_DIR}/models/pretrain.py --model_name ${MODEL_NAME} --dataset_path ${DATASET_NAME}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 add_custom_target(crawl_forum

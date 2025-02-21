@@ -9,6 +9,7 @@ import logging
 import math
 import argparse
 import numpy as np
+from clearml import Task
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
@@ -19,6 +20,9 @@ assert torch.cuda.is_available(), "CUDA is required for this script"
 # Set device
 device = torch.device('cuda:0')
 
+# setup clearml
+task = Task.init(project_name="BlackBoxCoder", task_name="Train")
+
 # Constants
 BLOCK_SIZE = 512
 STRIDE = 32
@@ -26,10 +30,10 @@ STRIDE = 32
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train a language model with PEFT and BitsAndBytesConfig.")
     parser.add_argument("--model_name", type=str, required=True, help="Name of the model to use")
-    parser.add_argument("--models_path", type=str, required=True, help="Path to models dir")
+    parser.add_argument("--models_path", type=str, default="./models", help="Path to models dir")
     parser.add_argument("--dataset_path", type=str, required=True, help="Path to the dataset")
     parser.add_argument("--epochs", type=int, default=7, help="Number of training epochs")
-    parser.add_argument("--output_dir", type=str, default="./results", help="Directory to save results")
+    parser.add_argument("--output_dir", type=str, default="./models/checkpoints", help="Directory to save results")
     return parser.parse_args()
 
 def tokenize_with_stride(texts, tokenizer, block_size=BLOCK_SIZE, stride=STRIDE):
@@ -90,13 +94,8 @@ def main():
     model, tokenizer = load_model_and_tokenizer(args.model_name, device, bnb_config, peft_config)
 
     # Prepare dataset
-    dataset_name = os.path.basename(args.dataset_path)
-    only_model_name = args.model_name.split("/")[-1].replace(':', "_")
-
-
-    with open(args.dataset_path, 'r') as file:
-        texts = file.readlines()
-
+    dataset = datasets.load_dataset(args.dataset_path)
+    texts = dataset["train"]["texts"]
     lm_datasets = tokenize_with_stride(texts, tokenizer)
     # metric = evaluate.load("bleu")
 
