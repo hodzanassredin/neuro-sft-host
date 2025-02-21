@@ -1,26 +1,34 @@
-import os
 import argparse
 import torch
 import transformers
 import peft
 import datasets
-import evaluate
 import time
 import math
 
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Train a QA model using transformers and PEFT.')
-    parser.add_argument('--dataset_path', type=str, required=True, help='Path to the dataset file.')
-    parser.add_argument('--model_name', type=str, required=True, help='Name of the model to use.')
-    parser.add_argument('--model_path', type=str, required=True, help='Path to the model directory.')
-    parser.add_argument('--epochs', type=int, default=7, help='Number of training epochs.')
-    parser.add_argument('--output_dir', type=str, default='./results_stage2', help='Directory to save results.')
-    parser.add_argument('--log_dir', type=str, default='./logs', help='Directory to save logs.')
+    parser = argparse.ArgumentParser(
+        description='Train a QA model using transformers and PEFT.')
+    parser.add_argument('--dataset_path', type=str, required=True,
+                        help='Path to the dataset file.')
+    parser.add_argument('--model_name', type=str, required=True,
+                        help='Name of the model to use.')
+    parser.add_argument('--model_path', type=str, required=True,
+                        help='Path to the model directory.')
+    parser.add_argument('--epochs', type=int, default=7, 
+                        help='Number of training epochs.')
+    parser.add_argument('--output_dir', type=str, default='./results_stage2',
+                        help='Directory to save results.')
+    parser.add_argument('--log_dir', type=str, default='./logs',
+                        help='Directory to save logs.')
     return parser.parse_args()
+
 
 def setup_device():
     assert torch.cuda.is_available(), "CUDA is required for this script."
     return torch.device('cuda:0')
+
 
 def load_model_and_tokenizer(model_path, device):
     bnb_config = transformers.BitsAndBytesConfig(
@@ -30,14 +38,18 @@ def load_model_and_tokenizer(model_path, device):
         bnb_4bit_compute_dtype=torch.bfloat16
     )
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
-    peft_config = peft.PeftConfig.from_pretrained(model_path)
-    model = transformers.AutoModelForCausalLM.from_pretrained(model_path, device_map=device, quantization_config=bnb_config)
-    model = peft.PeftModel.from_pretrained(model, model_path, is_trainable=True)
+    #peft_config = peft.PeftConfig.from_pretrained(model_path)
+    model = transformers.AutoModelForCausalLM.from_pretrained(
+        model_path, device_map=device, quantization_config=bnb_config)
+    model = peft.PeftModel.from_pretrained(
+        model, model_path, is_trainable=True)
     model.print_trainable_parameters()
     return model, tokenizer
 
+
 def load_dataset(dataset_path):
     return datasets.load_dataset("json", data_files=dataset_path)['train']
+
 
 def format_chat(example, tokenizer):
     chat = [
@@ -47,15 +59,22 @@ def format_chat(example, tokenizer):
     formatted_chat = tokenizer.apply_chat_template(chat, tokenize=False)
     return {"formatted_chat": formatted_chat}
 
+
 def tokenize_dataset(dataset, tokenizer):
     def tokenize_function(examples):
-        res = tokenizer(examples["formatted_chat"], truncation=True, padding="max_length", max_length=512)
+        res = tokenizer(examples["formatted_chat"], 
+                        truncation=True, 
+                        padding="max_length", 
+                        max_length=512)
         res["labels"] = res["input_ids"].copy()
         return res
     return dataset.map(tokenize_function, batched=True)
 
+
 def split_dataset(dataset):
-    return dataset.train_test_split(test_size=0.1).remove_columns(['Source', 'Question', 'Answer', 'formatted_chat'])
+    return dataset.train_test_split(test_size=0.1).remove_columns(
+        ['Source', 'Question', 'Answer', 'formatted_chat'])
+
 
 def setup_training_args(output_dir, log_dir, epochs):
     timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -75,8 +94,10 @@ def setup_training_args(output_dir, log_dir, epochs):
         warmup_steps=100,
     )
 
+
 def train_model(model, tokenizer, dataset, training_args):
-    data_collator = transformers.DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+    data_collator = transformers.DataCollatorForLanguageModeling(
+        tokenizer=tokenizer, mlm=False)
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
@@ -87,16 +108,19 @@ def train_model(model, tokenizer, dataset, training_args):
     trainer.train()
     return trainer
 
+
 def evaluate_model(trainer):
     eval_results = trainer.evaluate()
     perplexity = math.exp(eval_results['eval_loss'])
     print(f"Perplexity: {perplexity:.2f}")
     return perplexity
 
+
 def save_model(model, tokenizer, output_dir, timestr):
     final_path = f"{output_dir}/{model_name}_{timestr}"
     model.save_pretrained(final_path)
     tokenizer.save_pretrained(final_path)
+
 
 def main():
     args = parse_arguments()
@@ -110,6 +134,7 @@ def main():
     trainer = train_model(model, tokenizer, dataset, training_args)
     evaluate_model(trainer)
     save_model(model, tokenizer, args.output_dir, time.strftime("%Y%m%d-%H%M%S"))
+
 
 if __name__ == "__main__":
     main()

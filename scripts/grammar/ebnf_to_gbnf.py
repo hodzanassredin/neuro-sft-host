@@ -24,35 +24,47 @@ ebnf_grammar = """
     %ignore WS
 """
 
-def rebuild_expression(expression_node: Tree, rule_names: List[str], wrap: bool = False) -> str:
+
+def rebuild_expression(expression_node: Tree, 
+                       rule_names: List[str], 
+                       wrap: bool = False) -> str:
     """Rebuilds an expression node into a string representation."""
-    terms = [rebuild_term(term_node, rule_names) for term_node in expression_node.children]
+    terms = [rebuild_term(term_node, rule_names) for term_node 
+             in expression_node.children]
     joined = " | ".join(terms)
     return f"({joined})" if wrap else joined
 
+
 def rebuild_term(term_node: Tree, rule_names: List[str]) -> str:
     """Rebuilds a term node into a string representation."""
-    factors = [rebuild_factor(factor_node, rule_names) for factor_node in term_node.children]
+    factors = [rebuild_factor(factor_node, rule_names) for factor_node 
+               in term_node.children]
     return " ".join(factors)
+
 
 def rebuild_optional(node: Tree, rule_names: List[str]) -> str:
     """Rebuilds an optional node into a string representation."""
     expr = rebuild_expression(node.children[0], rule_names, False)
     return f"({expr})?"
 
+
 def rebuild_grouping(node: Tree, rule_names: List[str]) -> str:
     """Rebuilds a grouping node into a string representation."""
     expr = rebuild_expression(node.children[0], rule_names, False)
     return f"({expr})"
+
 
 def rebuild_repetition(node: Tree, rule_names: List[str]) -> str:
     """Rebuilds a repetition node into a string representation."""
     expr = rebuild_expression(node.children[0], rule_names, False)
     return f"({expr})*"
 
+
 def rebuild_range(node: Tree, rule_names: List[str]) -> str:
     """Rebuilds a range node into a string representation."""
-    return f"[{node.children[0].value.strip('"')}-{node.children[1].value.strip('"')}]"
+    return f"[{node.children[0].value.strip('"')}-\
+        {node.children[1].value.strip('"')}]"
+
 
 def rebuild_factor(factor_node: Tree, rule_names: List[str]) -> str:
     """Rebuilds a factor node into a string representation."""
@@ -76,20 +88,28 @@ def rebuild_factor(factor_node: Tree, rule_names: List[str]) -> str:
                 result.append(f"\"{child.value}\"")
     return "".join(result)
 
+
 def rebuild_rule(rule_node: Tree, rule_names: List[str]) -> str:
     """Rebuilds a rule node into a string representation."""
     id_node = rule_node.children[0]
     expression_node = rule_node.children[1]
-    return f"{id_node.value} ::= {rebuild_expression(expression_node, rule_names)}"
+    return f"{id_node.value} ::= {rebuild_expression(expression_node, 
+                                                     rule_names)}"
+
 
 def rebuild_ebnf(tree: Tree) -> str:
     """Rebuilds the entire EBNF tree into a string representation."""
-    rule_names = [c.children[0].value for c in tree.children if c.data == 'rule']
-    result = [rebuild_rule(child, rule_names) if child.data == "rule" else rebuild_expression(child, rule_names) for child in tree.children]
+    rule_names = [c.children[0].value for c in tree.children 
+                  if c.data == 'rule']
+    result = [rebuild_rule(child, rule_names) if child.data == "rule" 
+              else rebuild_expression(child, rule_names) for child 
+              in tree.children]
     return "\n".join(result)
+
 
 # Parser
 ebnf_parser = Lark(ebnf_grammar, start='start')
+
 
 def convert(file_name: str, out_file: str) -> None:
     """Converts an EBNF file to BNF and writes the output to a specified file."""
@@ -107,6 +127,7 @@ def convert(file_name: str, out_file: str) -> None:
         print(f"File '{file_name}' not found.")
     except Exception as e:
         print(f"ERROR: {e}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert EBNF to BNF.")
