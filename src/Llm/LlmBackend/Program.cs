@@ -41,7 +41,7 @@ namespace LlmBackend
                         .SetIsOriginAllowed(pol => true)
                         .AllowAnyHeader()
                         .AllowCredentials()
-                        
+                        .SetPreflightMaxAge(TimeSpan.FromMinutes(10))
                         ));
 
             builder.Services.AddSignalR().AddHubOptions<ChatHub>(options =>

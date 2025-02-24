@@ -1,7 +1,8 @@
 ﻿@page "/authentication/logout"
 @using LlmFrontend.Identity
+@using LlmFrontend.Infrastructure
 @inject IAccountManagement Acct
-
+@inject AppState state
 <PageTitle>Logout</PageTitle>
 
 <h1>Logout</h1>
@@ -23,6 +24,7 @@
         if (await Acct.CheckAuthenticatedAsync())
         {
             await Acct.LogoutAsync();
+            state.Clear();
         }
 
         await base.OnInitializedAsync();

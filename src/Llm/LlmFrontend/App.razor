@@ -1,12 +1,15 @@
 ﻿@using LlmCommon
 @using LlmCommon.Abstractions
 @using LlmCommon.Transport
+@using LlmFrontend.Identity
 @using LlmFrontend.Infrastructure
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Diagnostics
 @inject HubConnection hubConnection
 @inject IEventBus eventBus
 @inject AppState state
+@inject NavigationManager Navigation
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
@@ -34,12 +37,27 @@
     </Router>
 </CascadingAuthenticationState>
 
-@code   {
+@code {
     [Inject] IServiceProvider sp { get; set; }
+    [Inject] IAccountManagement id { get; set; }
+
+
     protected override async Task OnInitializedAsync()
     {
-        await hubConnection.StartAsync();
 
-        await state.LoadAsync();
+        if (!await id.CheckAuthenticatedAsync())
+        {
+            Console.WriteLine("App not loading state unauth");
+            Navigation.NavigateToLogin("authentication/login");
+        }
+        else
+        {
+            Console.WriteLine("App loading state and starting connection");
+            await hubConnection.StartAsync();
+            await state.LoadAsync();
+            
+        }
     }
+
+    
 }

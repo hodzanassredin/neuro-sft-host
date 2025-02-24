@@ -57,7 +57,10 @@ namespace LlmFrontend.Infrastructure
         {
             bus?.UnSubscribe(this);
         }
-
+        public void Clear() {
+            chats = null;
+            loadedChats = [];
+        }
         public async Task<bool> Handle(Event ev)
         {
             if (ev is ChatEvent cev)
