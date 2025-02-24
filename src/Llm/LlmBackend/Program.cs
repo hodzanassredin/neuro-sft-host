@@ -26,10 +26,11 @@ namespace LlmBackend
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            builder.Logging.AddConsole();
 
             var back = builder.Configuration["BackendUrl"] ?? "https://localhost:5001";
             var front = builder.Configuration["FrontendUrl"] ?? "https://localhost:5002";
+            
             var llm = builder.Configuration["LlmEndpoint"] ?? "http://localhost:9001/v1";
             builder.Services.AddCors(
                 options => options.AddPolicy(
@@ -40,6 +41,7 @@ namespace LlmBackend
                         .SetIsOriginAllowed(pol => true)
                         .AllowAnyHeader()
                         .AllowCredentials()
+                        
                         ));
 
             builder.Services.AddSignalR().AddHubOptions<ChatHub>(options =>
@@ -153,7 +155,7 @@ namespace LlmBackend
                             //.UseDistributedCache()
                             .UseOpenTelemetry(null, sourceName, c => c.EnableSensitiveData = true)
                             .Build(b));
-
+            
 
             builder.Services.AddHostedService<AiService>();
             builder.Services.AddSingleton<ITaskQueue>(ctx =>
@@ -171,17 +173,15 @@ namespace LlmBackend
 
             var app = builder.Build();
 
-
+            app.UseCors("wasm");
 
             app.UseResponseCompression();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
-            }
-
+            } 
             app.UseHttpsRedirection();
-
             //app.UseAuthentication();
             //app.UseAuthorization();
 
@@ -195,7 +195,7 @@ namespace LlmBackend
                 return TypedResults.Ok();
             });
 
-            app.UseCors("wasm");
+            
             app.MapIdentityApi<AppUser>();
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
@@ -221,6 +221,7 @@ namespace LlmBackend
             eventBus.Subscribe(handler);
 
             Registrator.Register(app.Services);
+            System.Console.WriteLine($"frontend {front}");
             app.Run();
         }
     }

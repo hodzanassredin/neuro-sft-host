@@ -1,10 +1,6 @@
 # neuro-sft-host
 Just an exam work for llm sft and hosting
 
-# TODO
-
-Code cleanup and makefile for tasks. Rewrite notebooks to python scripts.
-
 # Результаты
 
 [Презентация](./docs/presentation.md)
@@ -21,19 +17,36 @@ Code cleanup and makefile for tasks. Rewrite notebooks to python scripts.
 
 **ollama run hodza/BlackBox-Coder-3B:F32**
 
-# Сбор датасетов
+# Scripts
 
-[Кравлер для форума](./src/Llm/Crawler)
+Setup
 
-[Синтезатор вопросов и ответов из документации](./src/Llm/DatasetGenerator/)
+```
+./1_setup.sh
+./1.1_build_docker.sh
+./1.2_build_dotnet.sh
+```
 
-[Конвертер системы документации и кода BlackBox в txt файлы для датасета](./datasets/convert_bb_dir_to_txt_dir.py)
+Create datasets
 
+```./2_create_forum_dataset.sh
+./2_create_pdf_dataset.sh
+./2_create_text_dataset.sh
+```
 
+Train
+```
+./2_pretrain.sh
+```
+
+Eval
+```
+./3_run_notebooks.sh
+```
 # Обучение
 Используется базовая модель QwenCoder2.5-Instruct 3B. И обучается Qlora через SFT.
 
-[Ноутбук](./learn/notebooks/BB/pretrain.ipynb)
+[Ноутбук](./labs/notebooks/pretrain.ipynb)
 
 # Бот для телеграм
 

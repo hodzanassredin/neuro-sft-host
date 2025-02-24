@@ -4,8 +4,7 @@ services:
       command: redis-server
       ports:
         - "6379:6379"
-      networks:
-        - llm-network
+
     db:
       image: pgvector/pgvector:pg16 #postgis/postgis:latest
       ports:
@@ -16,7 +15,7 @@ services:
         POSTGRES_PASSWORD: "llm"
       volumes:
         # - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
-        - ./data/postgresql:/var/lib/postgresql/data
+        - db-data:/var/lib/postgresql/data
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U llm"]
         interval: 10s
@@ -26,41 +25,16 @@ services:
           options:
               max-size: "10m"
               max-file: "3"
-      networks:
-        - llm-network
 
-    # llm-dev-inference_server:
-    #     image: nvcr.io/nvidia/tensorrtserver:19.05-py3
-    #     runtime: nvidia
-    #     volumes:
-    #         - ./models/host:/models
-    #     ports:
-    #         - 8000:8000
-    #         - 8002:8002
-    #     command: ["trtserver", "--model-store=/models"]
-    #     shm_size: 1g
-    #     ulimits:
-    #         memlock: -1
-    #         stack: 67108864
-    #     deploy:
-    #         resources:
-    #             reservations:
-    #                 memory: 16GB
-    #                 devices:
-    #                     - driver: nvidia
-    #                       count: 1
-    #                       capabilities: [gpu]
     telegrambot:
       environment:
-        - OPENAI_ENDPOINT=http://llm-proxy:80/v1
+        - OPENAI_ENDPOINT=http://llm-server:8000/v1
         - OPENAI_KEY=nokey
         - BOT_TOKEN=${BOT_TOKEN}
         - CHATS_FOLDER=/chats
       depends_on:
         - llm-proxy
-      build:
-        context:  ./src/Llm/
-        dockerfile: ./LlmTelegramBot/Dockerfile
+      image: sft-bot
       volumes:
        - ./chats:/chats
       restart: always
@@ -68,57 +42,67 @@ services:
        options:
          max-size: "10m"
          max-file: "3"
-      networks:
-        - llm-network
+      profiles:
+        - donotstart
+
 
     llm-server:
+      ports:
+       - '8080:8000'
       restart: always
       volumes:
         - ./models:/models
-        - ./grammar:/grammar
+        #- ./grammar:/grammar
       image:
         ghcr.io/ggerganov/llama.cpp:server
       command:
-        -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512 --grammar-file /grammar/cp.gbnf
-      networks:
-        - llm-network
-      deploy:
-        replicas: 1
+        -m /models/BlackBox-Coder-3B-F32.gguf --port 8000 --host 0.0.0.0 -n 512 #--grammar-file /grammar/cp.gbnf
 
-    llm-proxy:
-      restart: always
-      image: nginx:latest
-      volumes:
-        - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Монтируем конфигурационный файл Nginx
-      ports:
-        - "9001:80"
-      depends_on:
-        - llm-server
-      networks:
-        - llm-network
+    frontend:
+     depends_on:
+       - backend
+     image: sft-frontend
+     volumes:
+       - ./docker/frontend_appsettings.json:/usr/share/nginx/html/appsettings.json
+       - ./docker/local.nginx.conf:/etc/nginx/nginx.conf
+       - ./docker/cert/aspnetapp.crt:/usr/nginx/ssl.crt
+       - ./docker/cert/aspnetapp.key:/usr/nginx/ssl.key
+       - ./docker/cert/aspnetapp.pass:/usr/nginx/ssl.pass
+     restart: always
+     ports:
+       - '5003:80'
+       - '5002:443'
+     logging:
+       options:
+         max-size: "10m"
+         max-file: "3"
 
-    # llm-server:
+    backend:
+     depends_on:
+       - db
+     image: sft-backend
+     volumes:
+       - ./docker/data/cert:/cert
+       - ./docker/data/backend:/data/fs:Z
+       - ./docker/cert:/https/
+     restart: always
+     environment:
+        - ConnectionStrings__AppDbContext=Host=db;Port=5432;Database=llm;Username=llm;Password=llm;Trust Server Certificate=true
+        - FrontendUrl=https://localhost:5002
+        - BackendUrl=https://localhost:5001
+        - LlmEndpoint=http://llm-server:8000/v1
+        - Options__RootFsPath=/data/fs
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_URLS=https://+:443;http://+:80
+        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=test
+     ports:
+       - '5000:80'
+       - '5001:443'
+     logging:
+       options:
+         max-size: "10m"
+         max-file: "3"
 
-    #     environment:
-    #       - NVIDIA_VISIBLE_DEVICES=all
-    #       - HF_HOME=/hf/
-    #     volumes:
-    #         - ${HF_HOME}:/hf
-    #         - ./models:/models
-    #         - ./vllmcache:/vllmcache
-    #     ports:
-    #         - 9001:8000
-    #     #ipc: host
-    #     image: vllm/vllm-openai:latest
-    #     command: --enforce-eager --gpu-memory-utilization 0.3 --max_model_len=812 --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
-    #     #command: --device cpu --enable-lora --model Qwen/Qwen2.5-Coder-3B-Instruct --download_dir /vllmcache --dtype bfloat16 --trust-remote-code --quantization bitsandbytes --load-format bitsandbytes --lora-modules cp-lora=hodza/BlackBox-Coder-3B
-    #     deploy:
-    #       resources:
-    #         reservations:
-    #           devices:
-    #             - driver: nvidia
-    #               device_ids: ['0']
-    #               capabilities: [gpu]
-networks:
-  llm-network:
-    driver: bridge
+volumes:
+  db-data:

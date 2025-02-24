@@ -29,32 +29,10 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # inference_server:
-  #   image: nvcr.io/nvidia/tensorrtserver:19.05-py3
-  #   runtime: nvidia
-  #   volumes:
-  #     - ./models:/models
-  #   ports:
-  #     - 8000:8000
-  #     - 8002:8002
-  #   command: ["trtserver", "--model-store=/models"]
-  #   shm_size: 1g
-  #   ulimits:
-  #     memlock: -1
-  #     stack: 67108864
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         memory: 16GB
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [gpu]
-
   frontend:
      depends_on:
        - backend
-     image: ghcr.io/hodzanassredin/hltr_front:latest
+     image: sft-frontend
      volumes:
        - ./cert:/cert
      restart: always
@@ -74,7 +52,7 @@ services:
        - db_password
      depends_on:
        - db
-     image: ghcr.io/hodzanassredin/hltr_back:latest
+     image: sft-backend
      volumes:
        - ./cert:/cert
        - ./data/backend:/data/fs:Z
