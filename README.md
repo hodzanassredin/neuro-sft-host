@@ -41,6 +41,8 @@ Train
 
 Eval
 ```
+./2_download_models.sh
+./3_run_local.sh
 ./3_run_notebooks.sh
 ```
 # Обучение
@@ -56,10 +58,10 @@ Eval
 
 Бекенд подключается к ллм через openai ендпоинт. Фронтенд на web assembly работает с бекенд через web sockets.
 
-[Бекенд](./src/Llm/LllmBackend/)
+[Бекенд](./src/Llm/LlmBackend/)
 
 [Фронтенд](./src/Llm/LlmFrontend/)
 
 # Хостинг
 
-Используется VLLM [docker compose](./docker-compose.yml)
+Используется VLLM для хостинга и llama cpp для локального хостинга с грамматиками [docker compose](./docker/docker-compose.local.yml)

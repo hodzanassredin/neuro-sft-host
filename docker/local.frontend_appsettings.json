@@ -1,0 +1,11 @@
+{
+  "BackendUrl": "https://localhost:5001",
+  "FrontendUrl": "https://localhost:5002",
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "HubConnection": "Warning"
+    }
+  }
+}

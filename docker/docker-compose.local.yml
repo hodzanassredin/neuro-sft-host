@@ -63,7 +63,7 @@ services:
        - backend
      image: sft-frontend
      volumes:
-       - ./docker/frontend_appsettings.json:/usr/share/nginx/html/appsettings.json
+       - ./docker/local.frontend_appsettings.json:/usr/share/nginx/html/appsettings.json
        - ./docker/local.nginx.conf:/etc/nginx/nginx.conf
        - ./docker/cert/aspnetapp.crt:/usr/nginx/ssl.crt
        - ./docker/cert/aspnetapp.key:/usr/nginx/ssl.key
