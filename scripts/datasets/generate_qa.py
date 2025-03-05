@@ -13,28 +13,42 @@ print("Hello, World!")
 
 Когда вы запустите этот код, он выведет на экран строку "Hello, World!". Если у вас есть дополнительные вопросы или вам нужно что-то еще, дайте знать!
 '''
-sample_code = json.dumps({"question": "Напиши программу выводящую hell world на python.", "answer" : s}, ensure_ascii=False)
+sample_code = json.dumps({"question": "Напиши программу выводящую hello world на python.", "answer" : s}, ensure_ascii=False)
 
 # Define the prompt for generating Q&A pairs
 prompt = '''
-Read the following documentation and generate the maximum number of question-answer pairs based on the information in the text. Present the result in a JSON array format with objects containing `question` and `answer` fields.
-Do not add markdown formatting. The output should be machine-readable JSON. Answers should include code examples and be highlighted using markdown. Escape quotes.
+Read the following documentation and generate the maximum number of 
+question-answer pairs based on the information in the text. Present the result 
+in a JSON array format with objects containing `question` and `answer` fields.
+Do not add markdown formatting. The output should be machine-readable JSON. 
+Answers should include code examples and be highlighted using markdown. 
+Escape quotes.
 
 **Documentation:**
 
-Python is a high-level, general-purpose programming language. It was created by Guido van Rossum and first released in 1991. Python supports multiple programming paradigms, including object-oriented, imperative, and functional programming. It is known for its simplicity and code readability.
+Python is a high-level, general-purpose programming language. 
+It was created by Guido van Rossum and first released in 1991. 
+Python supports multiple programming paradigms, 
+including object-oriented, imperative, and functional programming. 
+It is known for its simplicity and code readability.
 A simple Python program:
 
 print("Hello, world!")
 
 **Output format:**
 [
-    {"question": "What is Python?", "answer": "Python is a high-level, general-purpose programming language."},
-    {"question": "Who created Python?", "answer": "Guido van Rossum"},
-    {"question": "When was Python first released?", "answer": "In 1991"},
-    {"question": "What programming paradigms does Python support?", "answer": "Object-oriented, imperative, and functional programming"},
-    {"question": "What is Python known for?", "answer": "Simplicity and code readability"},
+    {"question": "What is Python?",
+     "answer": "Python is a high-level, general-purpose programming language."},
+    {"question": "Who created Python?",
+     "answer": "Guido van Rossum"},
+    {"question": "When was Python first released?",
+     "answer": "In 1991"},
+    {"question": "What programming paradigms does Python support?", 
+     "answer": "Object-oriented, imperative, and functional programming"},
+    {"question": "What is Python known for?",
+     "answer": "Simplicity and code readability"},
     ''' + sample_code + "\n]"
+
 
 # Function to split text into chunks based on empty lines
 def split_text_into_chunks(text, split_lines=2, min_lines=3):
@@ -44,7 +58,8 @@ def split_text_into_chunks(text, split_lines=2, min_lines=3):
     Args:
         text (str): The input text to be split.
         split_lines (int): Number of consecutive empty lines to split on.
-        min_lines (int): Minimum number of lines required for a chunk to be valid.
+        min_lines (int): Minimum number of lines 
+        required for a chunk to be valid.
 
     Returns:
         list: A list of text chunks.
@@ -75,6 +90,7 @@ def split_text_into_chunks(text, split_lines=2, min_lines=3):
         chunks.append('\n'.join(current_chunk))
 
     return chunks
+
 
 # Function to generate Q&A pairs using an API
 def generate_qa_pairs(text, api_key, endpoint, model_name):
@@ -112,10 +128,12 @@ def generate_qa_pairs(text, api_key, endpoint, model_name):
     else:
         raise Exception(f"Error {response.status_code}: {response.text}")
 
+
 # Function to process text files in a directory
 def process_text_files(directory, api_key, endpoint, model_name, output_dir):
     """
-    Processes all text files in the specified directory and generates Q&A pairs.
+    Processes all text files in the specified directory
+    and generates Q&A pairs.
 
     Args:
         directory (str): Path to the directory containing text files.
@@ -124,8 +142,8 @@ def process_text_files(directory, api_key, endpoint, model_name, output_dir):
         model_name (str): The name of the model to use.
         output_dir (str): Directory to save the output JSON files.
     """
-
-    os.makedirs(output_dir, exist_ok=True)  # Create output directory if it doesn't exist
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
     for filename in os.listdir(directory):
         if filename.endswith(".odc"):  # Process only .odc files
             filepath = os.path.join(directory, filename)
@@ -136,25 +154,47 @@ def process_text_files(directory, api_key, endpoint, model_name, output_dir):
                     chunks = split_text_into_chunks(text)
                     for i, chunk in enumerate(chunks):
                         try:
-                            response = generate_qa_pairs(chunk, api_key, endpoint, model_name)
-                            qa_pairs = response['choices'][0]['message']['content']
-                            file.write(qa_pairs)  # Write Q&A pairs to the output file
+                            response = generate_qa_pairs(
+                                chunk, api_key, endpoint, model_name)
+                            qa_pairs = response[
+                                'choices'][0]['message']['content']
+                            # Write Q&A pairs to the output file
+                            file.write(qa_pairs)
                         except Exception as e:
-                            print(f"Error processing file {filepath} chunk {i}: {e}")
+                            print(
+                                f"Error processing file {filepath} chunk {i}: {e}")
             print(f"Wrote {out}")
+
 
 def main():
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="Process text files to generate Q&A pairs.")
-    parser.add_argument("directory", help="Path to the directory containing text files.")
-    parser.add_argument("output_dir", help="Path to the output directory.")
-    parser.add_argument("model_name", help="Name of the model to use.")
-    parser.add_argument("endpoint", help="Api endpoint.", default="https://localhost:9999/v1")
-    parser.add_argument("api_key", help="Api key.", default="key")
+    parser = argparse.ArgumentParser(
+        description="Process text files to generate Q&A pairs.")
+    parser.add_argument(
+        "directory", 
+        help="Path to the directory containing text files.")
+    parser.add_argument(
+        "output_dir", 
+        help="Path to the output directory.")
+    parser.add_argument(
+        "model_name", 
+        help="Name of the model to use.")
+    parser.add_argument(
+        "endpoint", 
+        help="Api endpoint.", default="https://localhost:9999/v1")
+    parser.add_argument(
+        "api_key", 
+        help="Api key.", default="key")
     args = parser.parse_args()
 
     # Process all text files in the directory
-    process_text_files(args.directory, args.api_key, args.endpoint, args.model_name, args.output_dir)
+    process_text_files(
+        args.directory, 
+        args.api_key, 
+        args.endpoint, 
+        args.model_name, 
+        args.output_dir)
+
 
 if __name__ == "__main__":
     main()

@@ -5,6 +5,7 @@ from marker.converters.pdf import PdfConverter
 from marker.models import create_model_dict
 from marker.output import text_from_rendered
 
+
 def calculate_hash(file_path):
     """Calculate the SHA-256 hash of a file."""
     sha256 = hashlib.sha256()
@@ -13,20 +14,24 @@ def calculate_hash(file_path):
             sha256.update(chunk)
     return sha256.hexdigest()
 
+
 def pdf_to_text(file_path, converter):
     """Convert a PDF file to text using the provided converter."""
     rendered = converter(file_path)
     text, _, _ = text_from_rendered(rendered)
     return text
 
+
 def process_pdf_folder(folder_path, output_folder, converter):
     """
-    Process a folder of PDF files, converting them to text and excluding duplicates.
+    Process a folder of PDF files, converting them 
+    to text and excluding duplicates.
 
     Args:
         folder_path (str): Path to the folder containing PDF files.
         output_folder (str): Path to the folder where text files will be saved.
-        converter (PdfConverter): The converter instance to use for PDF to text conversion.
+        converter (PdfConverter): The converter instance 
+        to use for PDF to text conversion.
     """
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -43,7 +48,8 @@ def process_pdf_folder(folder_path, output_folder, converter):
                 try:
 
                     text = pdf_to_text(file_path, converter)
-                    output_file_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.md")
+                    output_file_path = os.path.join(
+                        output_folder, f"{os.path.splitext(filename)[0]}.md")
                     with open(output_file_path, 'w', encoding='utf-8') as output_file:
                         output_file.write(text)
                     print(f"Processed: {filename}")
@@ -52,15 +58,25 @@ def process_pdf_folder(folder_path, output_folder, converter):
             else:
                 print(f"Duplicate found, skipping: {filename}")
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Process a folder of PDF files to text, excluding duplicates.")
-    parser.add_argument('folder_path', type=str, help="Path to the folder containing PDF files.")
-    parser.add_argument('output_folder', type=str, help="Path to the folder where text files will be saved.")
+    parser = argparse.ArgumentParser(
+        description="Process a folder of PDF files to text, excluding duplicates.")
+    parser.add_argument(
+        'folder_path',
+        type=str,
+        help="Path to the folder containing PDF files.")
+    parser.add_argument(
+        'output_folder',
+        type=str,
+        help="Path to the folder where text files will be saved.")
 
     args = parser.parse_args()
 
-    converter = PdfConverter(artifact_dict=create_model_dict(), config = {})
+    converter = PdfConverter(artifact_dict=create_model_dict(),
+                             config={})
     process_pdf_folder(args.folder_path, args.output_folder, converter)
+
 
 if __name__ == "__main__":
     main()

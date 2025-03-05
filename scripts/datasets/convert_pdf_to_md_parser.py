@@ -1,6 +1,6 @@
 import argparse
 import re
-from lark import Lark, UnexpectedEOF, Token
+from lark import Lark, UnexpectedEOF
 
 # Constants
 MAX_TEXT_SIZE = 512
@@ -138,11 +138,13 @@ starts = [
 # Initialize parsers for each start rule
 parsers = [Lark(ebnf_grammar, start=s) for s in starts]
 
+
 def is_really_code(text):
     """
     Check if the text is likely to be code.
     """
     return len(text) > 10 and len(text.split()) > 1
+
 
 def get_code_and_tail(orig_text, max_size=MAX_TEXT_SIZE):
     """
@@ -150,7 +152,8 @@ def get_code_and_tail(orig_text, max_size=MAX_TEXT_SIZE):
     """
     for parser in parsers:
         try:
-            text = orig_text[:max_size] if len(orig_text) > max_size else orig_text
+            text = orig_text[:max_size] \
+                    if len(orig_text) > max_size else orig_text
             tree = parser.parse(text)
             split_idx = len(text) - len(tree.children[1].value)
 
@@ -166,6 +169,7 @@ def get_code_and_tail(orig_text, max_size=MAX_TEXT_SIZE):
             pass
     return "", orig_text  # no code
 
+
 def load_file(path):
     """
     Load the content of a file.
@@ -173,12 +177,14 @@ def load_file(path):
     with open(path, 'r', encoding='utf-8') as f:
         return f.read()
 
+
 def escape_markdown(text):
     """
     Escape special Markdown characters.
     """
     escape_chars = r'\_*[]()~`>#+-=|{}.!'
     return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
+
 
 def find_first_line_end(text):
     """
@@ -193,6 +199,7 @@ def find_first_line_end(text):
     if nl_idx == -1:
         return len(text)
     return nl_idx + 1 if nl_idx != len(text) else nl_idx
+
 
 def code_to_md(text):
     """
@@ -216,6 +223,7 @@ def code_to_md(text):
             text = text[nl_idx:]
     return md
 
+
 def main(input_file, output_file):
     """
     Main function to process the file and write the result to the output file.
@@ -225,10 +233,14 @@ def main(input_file, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(md)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert text to Markdown format.")
-    parser.add_argument("input_file", help="Path to the input file.")
-    parser.add_argument("output_file", help="Path to the output Markdown file.")
+    parser = argparse.ArgumentParser(
+        description="Convert text to Markdown format.")
+    parser.add_argument("input_file", 
+                        help="Path to the input file.")
+    parser.add_argument("output_file", 
+                        help="Path to the output Markdown file.")
     args = parser.parse_args()
 
     main(args.input_file, args.output_file)

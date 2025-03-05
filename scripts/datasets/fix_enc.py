@@ -2,6 +2,7 @@ import os
 import argparse
 import re
 
+
 def fix(fname, resfname):
     """
     Fixes the encoding of a file by converting it from UTF-8 to CP1251,
@@ -15,14 +16,18 @@ def fix(fname, resfname):
         content = f.read().decode('utf-8')
 
     # Filter out characters with ordinal values greater than 255
-    fixed_content = bytes([ord(char) for char in content if ord(char) < 256]).decode('cp1251')
-    fixed_content = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]', '', fixed_content)
+    fixed_content = bytes(
+         [ord(char) for char in content if ord(char) < 256]).decode('cp1251')
+    fixed_content = re.sub(
+        r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]', '', fixed_content)
     with open(resfname, 'w', encoding='utf-8') as f:
         f.write(fixed_content)
 
+
 def convert_files(source_dir, dest_dir):
     """
-    Converts all '.odc' files in the source directory to the destination directory
+    Converts all '.odc' files in the source directory 
+    to the destination directory
     with fixed encoding.
 
     Args:
@@ -33,14 +38,16 @@ def convert_files(source_dir, dest_dir):
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
 
-    # Recursively walk through all files and subdirectories in the source directory
+    # Recursively walk through all files and subdirectories
+    # in the source directory
     for root, _, files in os.walk(source_dir):
         for filename in files:
             if filename.endswith('.odc'):
                 source_file = os.path.join(root, filename)
                 print(f"Fix encoding {source_file}")
 
-                # Create corresponding directory structure in the destination directory
+                # Create corresponding directory structure 
+                # in the destination directory
                 relative_path = os.path.relpath(root, source_dir)
                 dest_subdir = os.path.join(dest_dir, relative_path)
                 if not os.path.exists(dest_subdir):
@@ -49,16 +56,25 @@ def convert_files(source_dir, dest_dir):
                 dest_file = os.path.join(dest_subdir, filename)
                 fix(source_file, dest_file)
 
+
 def main():
     """
     Main function to parse command-line arguments and convert files.
     """
-    parser = argparse.ArgumentParser(description='Convert .odc files with fixed encoding.')
-    parser.add_argument('source_dir', type=str, help='Source directory containing .odc files.')
-    parser.add_argument('dest_dir', type=str, help='Destination directory for converted files.')
+    parser = argparse.ArgumentParser(
+        description='Convert .odc files with fixed encoding.')
+    parser.add_argument(
+        'source_dir',
+        type=str,
+        help='Source directory containing .odc files.')
+    parser.add_argument(
+        'dest_dir',
+        type=str,
+        help='Destination directory for converted files.')
 
     args = parser.parse_args()
     convert_files(args.source_dir, args.dest_dir)
+
 
 if __name__ == "__main__":
     main()

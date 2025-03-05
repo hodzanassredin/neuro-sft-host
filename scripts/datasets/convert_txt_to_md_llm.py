@@ -3,12 +3,27 @@ import torch
 import transformers
 import argparse
 
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Process and convert text files to Markdown format using a language model.")
-    parser.add_argument('--dataset_path', type=str, required=True, help='Path to the dataset directory.')
-    parser.add_argument('--fixed_dataset_path', type=str, required=True, help='Path to save the formatted Markdown files.')
-    parser.add_argument('--model_name', type=str, default="Qwen/Qwen2.5-Coder-7B-Instruct", help='Name of the model to use.')
+    parser = argparse.ArgumentParser(
+        description="Process and convert text files to Markdown format using a language model.")
+    parser.add_argument(
+        '--dataset_path',
+        type=str, 
+        required=True, 
+        help='Path to the dataset directory.')
+    parser.add_argument(
+        '--fixed_dataset_path',
+        type=str,
+        required=True,
+        help='Path to save the formatted Markdown files.')
+    parser.add_argument(
+        '--model_name',
+        type=str,
+        default="Qwen/Qwen2.5-Coder-7B-Instruct",
+        help='Name of the model to use.')
     return parser.parse_args()
+
 
 def load_texts(dataset_path):
     """
@@ -34,6 +49,7 @@ def load_texts(dataset_path):
             texts.append(text)
     return file_names, texts
 
+
 def initialize_model(model_name, device):
     """
     Initialize the language model and tokenizer.
@@ -53,8 +69,10 @@ def initialize_model(model_name, device):
     )
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-    model = transformers.AutoModelForCausalLM.from_pretrained(model_name, device_map=device, quantization_config=bnb_config)
+    model = transformers.AutoModelForCausalLM.from_pretrained(
+        model_name, device_map=device, quantization_config=bnb_config)
     return tokenizer, model
+
 
 def rewrite(text, tokenizer, model, device, system_prompt):
     """
@@ -87,11 +105,14 @@ def rewrite(text, tokenizer, model, device, system_prompt):
         temperature=0.1
     )
     generated_ids = [
-        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+        output_ids[len(input_ids):]
+        for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
     ]
 
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    response = tokenizer.batch_decode(
+        generated_ids, skip_special_tokens=True)[0]
     return response
+
 
 def main():
     args = parse_arguments()
@@ -113,6 +134,7 @@ def main():
         print(out_name)
         with open(out_name, 'w', encoding='utf-8') as f:
             f.write(text)
+
 
 if __name__ == "__main__":
     main()

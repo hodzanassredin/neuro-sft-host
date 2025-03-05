@@ -5,6 +5,8 @@ import peft
 import datasets
 import time
 import math
+import evaluate
+import numpy as np
 
 
 def parse_arguments():
@@ -23,6 +25,57 @@ def parse_arguments():
     parser.add_argument('--log_dir', type=str, default='./logs',
                         help='Directory to save logs.')
     return parser.parse_args()
+
+
+bleu_metric = evaluate.load("bleu")
+rouge_metric = evaluate.load("rouge")
+
+
+def preprocess_logits_for_metrics(logits, labels):
+    if isinstance(logits, tuple):
+        logits = logits[0]
+    return logits.argmax(dim=-1)
+
+
+def get_metrics_fn(tokenizer):
+    def compute_metrics(eval_preds):
+        preds, labels = eval_preds
+
+        if isinstance(preds, tuple):
+            preds = preds[0]
+
+        # Replace -100 in the preds as we can't decode them
+        preds = np.where(preds != -100, preds, tokenizer.pad_token_id)
+
+        # Decode generated summaries into text
+        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+
+        # Replace -100 in the labels as we can't decode them
+        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        # Decode reference summaries into text
+        decoded_labels = tokenizer.batch_decode(
+            labels, skip_special_tokens=True)
+        # ROUGE expects a newline after each sentence
+        decoded_preds = ["\n".join(pred.strip()) for pred in decoded_preds]
+
+        decoded_labels = ["\n".join(label.strip()) for label in decoded_labels]
+        # Extract the median scores
+        resultb = bleu_metric.compute(
+            predictions=decoded_preds, references=decoded_labels)
+        resultr = rouge_metric.compute(
+            predictions=decoded_preds, references=decoded_labels)
+        f1 = 2 * (resultb["bleu"] * resultr['rougeL']) / (resultb["bleu"] + resultr['rougeL'])
+        return {
+            # Bleu measures precision
+            "bleu": resultb["bleu"], 
+            # Rouge measures recall
+            "rouge1": resultr["rouge1"],
+            "rouge2": resultr["rouge2"],
+            # valuates the match of the longest common subsequences (LCS).
+            # Suitable for tasks where preserving the order and structure of the text is important.
+            "rougeL": resultr["rougeL"],
+            "f1" : f1}
+    return compute_metrics
 
 
 def setup_device():
@@ -76,7 +129,7 @@ def split_dataset(dataset):
         ['Source', 'Question', 'Answer', 'formatted_chat'])
 
 
-def setup_training_args(output_dir, log_dir, epochs):
+def setup_training_args(output_dir, log_dir, epochs, model_name):
     timestr = time.strftime("%Y%m%d-%H%M%S")
     return transformers.TrainingArguments(
         output_dir=f"{output_dir}/{model_name}/{timestr}/",
@@ -95,7 +148,8 @@ def setup_training_args(output_dir, log_dir, epochs):
     )
 
 
-def train_model(model, tokenizer, dataset, training_args):
+def train_model(model, tokenizer, dataset, training_args, compute_metrics, 
+                preprocess_logits_for_metrics):
     data_collator = transformers.DataCollatorForLanguageModeling(
         tokenizer=tokenizer, mlm=False)
     trainer = transformers.Trainer(
@@ -104,6 +158,8 @@ def train_model(model, tokenizer, dataset, training_args):
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         data_collator=data_collator,
+        compute_metrics=compute_metrics,
+        preprocess_logits_for_metrics=preprocess_logits_for_metrics,
     )
     trainer.train()
     return trainer
@@ -116,7 +172,7 @@ def evaluate_model(trainer):
     return perplexity
 
 
-def save_model(model, tokenizer, output_dir, timestr):
+def save_model(model, tokenizer, output_dir, timestr, model_name):
     final_path = f"{output_dir}/{model_name}_{timestr}"
     model.save_pretrained(final_path)
     tokenizer.save_pretrained(final_path)
@@ -130,10 +186,22 @@ def main():
     dataset = dataset.map(lambda x: format_chat(x, tokenizer))
     dataset = tokenize_dataset(dataset, tokenizer)
     dataset = split_dataset(dataset)
-    training_args = setup_training_args(args.output_dir, args.log_dir, args.epochs)
-    trainer = train_model(model, tokenizer, dataset, training_args)
+    training_args = setup_training_args(
+        args.output_dir, args.log_dir, args.epochs, args.model_name)
+    trainer = train_model(
+        model,
+        tokenizer,
+        dataset,
+        training_args,
+        preprocess_logits_for_metrics,
+        get_metrics_fn(tokenizer))
     evaluate_model(trainer)
-    save_model(model, tokenizer, args.output_dir, time.strftime("%Y%m%d-%H%M%S"))
+    save_model(
+        model,
+        tokenizer,
+        args.output_dir,
+        time.strftime("%Y%m%d-%H%M%S"),
+        args.model_name)
 
 
 if __name__ == "__main__":
