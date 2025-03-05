@@ -65,3 +65,7 @@ Eval
 # Хостинг
 
 Используется VLLM для хостинга и llama cpp для локального хостинга с грамматиками [docker compose](./docker/docker-compose.local.yml)
+
+# Docs
+
+[Textbooks Are All You Need](https://arxiv.org/pdf/2306.11644)
